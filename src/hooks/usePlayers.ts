@@ -52,6 +52,14 @@ export function usePlayers() {
     return success;
   }, []);
 
+  const archivePlayer = useCallback((playerId: string): boolean => {
+    return updatePlayer(playerId, { archived: true });
+  }, [updatePlayer]);
+
+  const unarchivePlayer = useCallback((playerId: string): boolean => {
+    return updatePlayer(playerId, { archived: false });
+  }, [updatePlayer]);
+
   const getPlayerById = useCallback((playerId: string): Player | undefined => {
     return players.find(player => player.id === playerId);
   }, [players]);
@@ -62,6 +70,8 @@ export function usePlayers() {
     addPlayer,
     updatePlayer,
     deletePlayer,
+    archivePlayer,
+    unarchivePlayer,
     getPlayerById,
   };
 }

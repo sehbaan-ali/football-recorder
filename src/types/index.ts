@@ -2,6 +2,7 @@ export interface Player {
   id: string;
   name: string;
   createdAt: string;
+  archived?: boolean;
 }
 
 export type TeamColor = 'yellow' | 'red';
