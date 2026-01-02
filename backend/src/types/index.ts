@@ -39,6 +39,7 @@ export interface CleanSheetEvent {
   type: 'clean-sheet';
   playerId: string;
   team: TeamColor;
+  timestamp: string;
 }
 
 export interface Match {
@@ -59,8 +60,8 @@ export interface PlayerStats {
   draws: number;
   goals: number;
   assists: number;
-  ownGoals: number;
   cleanSheets: number;
+  winRate: number;
 }
 
-export type SortBy = 'wins' | 'goals' | 'assists' | 'cleanSheets';
+export type SortBy = 'wins' | 'goals' | 'assists' | 'cleanSheets' | 'winRate';

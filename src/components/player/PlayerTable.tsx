@@ -6,12 +6,13 @@ import {
   TableBody,
   TableCell,
   Button,
+  Badge,
   makeStyles,
   tokens,
   Text,
 } from '@fluentui/react-components';
 import { Edit24Regular, Delete24Regular, Archive24Regular, ArrowUndo24Regular } from '@fluentui/react-icons';
-import type { Player, PlayerStats } from '../../types';
+import type { Player, PlayerStats, PlayerPosition } from '../../types';
 
 const useStyles = makeStyles({
   table: {
@@ -29,7 +30,28 @@ const useStyles = makeStyles({
   nameCell: {
     fontWeight: tokens.fontWeightSemibold,
   },
+  positionBadge: {
+    fontSize: '11px',
+    fontWeight: tokens.fontWeightSemibold,
+  },
 });
+
+const getPositionColor = (position: PlayerPosition): 'success' | 'informative' | 'warning' | 'severe' | 'important' => {
+  switch (position) {
+    case 'GK':
+      return 'success'; // Green
+    case 'DEF':
+      return 'informative'; // Blue
+    case 'MID':
+      return 'warning'; // Yellow/Orange
+    case 'WING':
+      return 'severe'; // Purple
+    case 'ST':
+      return 'important'; // Red
+    default:
+      return 'informative';
+  }
+};
 
 interface PlayerTableProps {
   players: Player[];
@@ -60,6 +82,7 @@ export function PlayerTable({ players, playerStats, onEditPlayer, onDeletePlayer
       <TableHeader>
         <TableRow>
           <TableHeaderCell>Name</TableHeaderCell>
+          <TableHeaderCell>Pos</TableHeaderCell>
           <TableHeaderCell>Matches</TableHeaderCell>
           <TableHeaderCell>Wins</TableHeaderCell>
           <TableHeaderCell>Draws</TableHeaderCell>
@@ -79,6 +102,15 @@ export function PlayerTable({ players, playerStats, onEditPlayer, onDeletePlayer
             <TableRow key={player.id}>
               <TableCell>
                 <Text className={styles.nameCell}>{player.name}</Text>
+              </TableCell>
+              <TableCell>
+                <Badge
+                  appearance="filled"
+                  color={getPositionColor(player.position)}
+                  className={styles.positionBadge}
+                >
+                  {player.position}
+                </Badge>
               </TableCell>
               <TableCell>{stats?.matchesPlayed || 0}</TableCell>
               <TableCell>{stats?.wins || 0}</TableCell>

@@ -1,77 +1,92 @@
 import { useState, useCallback, useEffect } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-import { storage } from '../services/storage';
+import { api } from '../services/api';
 import type { Match, MatchEvent } from '../types';
 
 export function useMatches() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadMatches = () => {
-      const loadedMatches = storage.getMatches();
-      // Sort by date descending (most recent first)
-      loadedMatches.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      setMatches(loadedMatches);
-      setLoading(false);
+    const loadMatches = async () => {
+      try {
+        setLoading(true);
+        const loadedMatches = await api.matches.getAll();
+        // Backend already sorts by date descending
+        setMatches(loadedMatches);
+        setError(null);
+      } catch (err) {
+        console.error('Error loading matches:', err);
+        setError('Failed to load matches');
+      } finally {
+        setLoading(false);
+      }
     };
 
     loadMatches();
   }, []);
 
-  const createMatch = useCallback((
+  const createMatch = useCallback(async (
     date: string,
     yellowPlayerIds: string[],
     redPlayerIds: string[]
-  ): Match | null => {
-    const newMatch: Match = {
-      id: uuidv4(),
-      date,
-      yellowTeam: {
-        playerIds: yellowPlayerIds,
-        score: 0,
-      },
-      redTeam: {
-        playerIds: redPlayerIds,
-        score: 0,
-      },
-      events: [],
-      createdAt: new Date().toISOString(),
-    };
+  ): Promise<Match | null> => {
+    try {
+      const newMatch = await api.matches.create({
+        date,
+        yellowTeam: {
+          playerIds: yellowPlayerIds,
+          score: 0,
+        },
+        redTeam: {
+          playerIds: redPlayerIds,
+          score: 0,
+        },
+        events: [],
+      });
 
-    const success = storage.addMatch(newMatch);
-    if (success) {
       setMatches(prev => [newMatch, ...prev]);
       return newMatch;
+    } catch (err) {
+      console.error('Error creating match:', err);
+      setError('Failed to create match');
+      return null;
     }
-    return null;
   }, []);
 
-  const updateMatch = useCallback((matchId: string, updates: Partial<Match>): boolean => {
-    const success = storage.updateMatch(matchId, updates);
-    if (success) {
+  const updateMatch = useCallback(async (matchId: string, updates: Partial<Match>): Promise<boolean> => {
+    try {
+      const updatedMatch = await api.matches.update(matchId, updates);
       setMatches(prev =>
         prev.map(match =>
-          match.id === matchId ? { ...match, ...updates } : match
+          match.id === matchId ? updatedMatch : match
         )
       );
+      return true;
+    } catch (err) {
+      console.error('Error updating match:', err);
+      setError('Failed to update match');
+      return false;
     }
-    return success;
   }, []);
 
-  const deleteMatch = useCallback((matchId: string): boolean => {
-    const success = storage.deleteMatch(matchId);
-    if (success) {
+  const deleteMatch = useCallback(async (matchId: string): Promise<boolean> => {
+    try {
+      await api.matches.delete(matchId);
       setMatches(prev => prev.filter(match => match.id !== matchId));
+      return true;
+    } catch (err) {
+      console.error('Error deleting match:', err);
+      setError('Failed to delete match');
+      return false;
     }
-    return success;
   }, []);
 
   const getMatchById = useCallback((matchId: string): Match | undefined => {
     return matches.find(match => match.id === matchId);
   }, [matches]);
 
-  const addMatchEvent = useCallback((matchId: string, event: MatchEvent): boolean => {
+  const addMatchEvent = useCallback(async (matchId: string, event: MatchEvent): Promise<boolean> => {
     const match = matches.find(m => m.id === matchId);
     if (!match) return false;
 
@@ -96,14 +111,14 @@ export function useMatches() {
       }
     }
 
-    return updateMatch(matchId, {
+    return await updateMatch(matchId, {
       events: updatedEvents,
       yellowTeam: { ...match.yellowTeam, score: yellowScore },
       redTeam: { ...match.redTeam, score: redScore },
     });
   }, [matches, updateMatch]);
 
-  const removeLastEvent = useCallback((matchId: string): boolean => {
+  const removeLastEvent = useCallback(async (matchId: string): Promise<boolean> => {
     const match = matches.find(m => m.id === matchId);
     if (!match || match.events.length === 0) return false;
 
@@ -129,14 +144,14 @@ export function useMatches() {
       }
     });
 
-    return updateMatch(matchId, {
+    return await updateMatch(matchId, {
       events: updatedEvents,
       yellowTeam: { ...match.yellowTeam, score: yellowScore },
       redTeam: { ...match.redTeam, score: redScore },
     });
   }, [matches, updateMatch]);
 
-  const finalizeMatch = useCallback((matchId: string): boolean => {
+  const finalizeMatch = useCallback(async (matchId: string): Promise<boolean> => {
     const match = matches.find(m => m.id === matchId);
     if (!match) return false;
 
@@ -166,7 +181,7 @@ export function useMatches() {
     }
 
     if (cleanSheetEvents.length > 0) {
-      return updateMatch(matchId, {
+      return await updateMatch(matchId, {
         events: [...match.events, ...cleanSheetEvents],
       });
     }
@@ -177,6 +192,7 @@ export function useMatches() {
   return {
     matches,
     loading,
+    error,
     createMatch,
     updateMatch,
     deleteMatch,

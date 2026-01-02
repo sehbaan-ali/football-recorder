@@ -7,7 +7,16 @@ import { PlayerTable } from '../components/player/PlayerTable';
 import { usePlayers } from '../hooks/usePlayers';
 import { useMatches } from '../hooks/useMatches';
 import { useStats } from '../hooks/useStats';
-import type { Player } from '../types';
+import type { Player, PlayerPosition } from '../types';
+
+// Position sort order
+const POSITION_ORDER: Record<PlayerPosition, number> = {
+  'GK': 1,
+  'DEF': 2,
+  'MID': 3,
+  'WING': 4,
+  'ST': 5,
+};
 
 export function Players() {
   const { players, addPlayer, updatePlayer, deletePlayer, archivePlayer, unarchivePlayer, loading: playersLoading } = usePlayers();
@@ -17,8 +26,8 @@ export function Players() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
 
-  const handleAddPlayer = (name: string) => {
-    addPlayer(name);
+  const handleAddPlayer = (name: string, position: string) => {
+    addPlayer(name, position);
   };
 
   const handleEditPlayer = (player: Player) => {
@@ -26,9 +35,9 @@ export function Players() {
     setEditDialogOpen(true);
   };
 
-  const handleUpdatePlayer = (name: string) => {
+  const handleUpdatePlayer = (name: string, position: string) => {
     if (editingPlayer) {
-      updatePlayer(editingPlayer.id, { name });
+      updatePlayer(editingPlayer.id, { name, position: position as any });
       setEditingPlayer(null);
       setEditDialogOpen(false);
     }
@@ -68,10 +77,17 @@ export function Players() {
 
   const loading = playersLoading || matchesLoading;
 
-  // Filter players based on archived status
-  const filteredPlayers = players.filter(player =>
-    showArchived ? player.archived : !player.archived
-  );
+  // Filter players based on archived status and sort by position
+  const filteredPlayers = players
+    .filter(player => showArchived ? player.archived : !player.archived)
+    .sort((a, b) => {
+      // Sort by position first
+      const positionDiff = POSITION_ORDER[a.position] - POSITION_ORDER[b.position];
+      if (positionDiff !== 0) return positionDiff;
+
+      // If same position, sort alphabetically by name
+      return a.name.localeCompare(b.name);
+    });
 
   const archivedCount = players.filter(p => p.archived).length;
 
@@ -126,6 +142,7 @@ export function Players() {
           <PlayerForm
             onSubmit={handleUpdatePlayer}
             initialName={editingPlayer?.name || ''}
+            initialPosition={editingPlayer?.position || 'ST'}
             title="Edit Player"
             open={editDialogOpen}
             onOpenChange={handleEditDialogClose}

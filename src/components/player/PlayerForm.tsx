@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import {
   Dialog,
   DialogTrigger,
@@ -10,8 +10,11 @@ import {
   Button,
   Input,
   Label,
+  Dropdown,
+  Option,
   makeStyles,
 } from '@fluentui/react-components';
+import type { PlayerPosition } from '../../types';
 
 const useStyles = makeStyles({
   field: {
@@ -22,10 +25,19 @@ const useStyles = makeStyles({
   },
 });
 
+const POSITIONS = [
+  { value: 'GK', label: 'Goalkeeper' },
+  { value: 'DEF', label: 'Defender' },
+  { value: 'MID', label: 'Midfielder' },
+  { value: 'WING', label: 'Winger' },
+  { value: 'ST', label: 'Striker' },
+] as const;
+
 interface PlayerFormProps {
-  onSubmit: (name: string) => void;
+  onSubmit: (name: string, position: PlayerPosition) => void;
   trigger?: React.ReactElement;
   initialName?: string;
+  initialPosition?: PlayerPosition;
   title?: string;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -35,6 +47,7 @@ export function PlayerForm({
   onSubmit,
   trigger,
   initialName = '',
+  initialPosition = 'ST',
   title = 'Add New Player',
   open: controlledOpen,
   onOpenChange: controlledOnOpenChange
@@ -42,16 +55,26 @@ export function PlayerForm({
   const styles = useStyles();
   const [internalOpen, setInternalOpen] = useState(false);
   const [name, setName] = useState(initialName);
+  const [position, setPosition] = useState<PlayerPosition>(initialPosition);
 
   // Use controlled or uncontrolled mode
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
 
+  // Sync form state when dialog opens or initial values change
+  useEffect(() => {
+    if (open) {
+      setName(initialName);
+      setPosition(initialPosition);
+    }
+  }, [open, initialName, initialPosition]);
+
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (name.trim()) {
-      onSubmit(name.trim());
+    if (name.trim() && position) {
+      onSubmit(name.trim(), position);
       setName('');
+      setPosition('ST');
       if (isControlled && controlledOnOpenChange) {
         controlledOnOpenChange(false);
       } else {
@@ -65,10 +88,6 @@ export function PlayerForm({
       controlledOnOpenChange(data.open);
     } else {
       setInternalOpen(data.open);
-    }
-
-    if (data.open) {
-      setName(initialName);
     }
   };
 
@@ -91,6 +110,25 @@ export function PlayerForm({
                 autoFocus
               />
             </div>
+            <div className={styles.field}>
+              <Label htmlFor="player-position" required>
+                Position
+              </Label>
+              <Dropdown
+                id="player-position"
+                placeholder="Select position"
+                value={POSITIONS.find(p => p.value === position)?.label}
+                selectedOptions={[position]}
+                onOptionSelect={(_, data) => setPosition(data.optionValue as PlayerPosition)}
+                required
+              >
+                {POSITIONS.map((pos) => (
+                  <Option key={pos.value} value={pos.value}>
+                    {pos.label}
+                  </Option>
+                ))}
+              </Dropdown>
+            </div>
           </DialogContent>
           <DialogActions>
             <Button appearance="secondary" onClick={() => {
@@ -102,7 +140,7 @@ export function PlayerForm({
             }}>
               Cancel
             </Button>
-            <Button type="submit" appearance="primary" disabled={!name.trim()}>
+            <Button type="submit" appearance="primary" disabled={!name.trim() || !position}>
               {initialName ? 'Save Changes' : 'Add Player'}
             </Button>
           </DialogActions>
