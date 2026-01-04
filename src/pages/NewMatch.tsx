@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Button,
@@ -9,7 +9,7 @@ import {
   Text,
 } from '@fluentui/react-components';
 import { PageHeader } from '../components/layout/PageHeader';
-import { TeamSelector } from '../components/match/TeamSelector';
+import { FormationSelector, type FormationAssignment } from '../components/match/FormationSelector';
 import { LiveMatchRecorder } from '../components/match/LiveMatchRecorder';
 import { MatchEventList } from '../components/match/MatchEventList';
 import { usePlayers } from '../hooks/usePlayers';
@@ -18,8 +18,9 @@ import type { TeamColor, MatchEvent } from '../types';
 
 const useStyles = makeStyles({
   container: {
-    maxWidth: '900px',
+    maxWidth: '1400px',
     margin: '0 auto',
+    padding: '0 16px',
   },
   step: {
     marginBottom: '32px',
@@ -28,8 +29,8 @@ const useStyles = makeStyles({
     marginBottom: '16px',
   },
   teams: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
+    display: 'flex',
+    flexDirection: 'column',
     gap: '24px',
     marginTop: '16px',
   },
@@ -54,30 +55,50 @@ export function NewMatch() {
   const styles = useStyles();
   const navigate = useNavigate();
   const { players } = usePlayers();
-  const { createMatch, addMatchEvent, removeLastEvent, finalizeMatch } = useMatches();
+  const { createMatch, updateMatch } = useMatches();
 
   const [step, setStep] = useState<Step>('setup');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [yellowPlayerIds, setYellowPlayerIds] = useState<string[]>([]);
-  const [redPlayerIds, setRedPlayerIds] = useState<string[]>([]);
-  const [currentMatchId, setCurrentMatchId] = useState<string | null>(null);
+  const [yellowFormation, setYellowFormation] = useState<FormationAssignment>({
+    GK: null,
+    DEF_1: null,
+    DEF_2: null,
+    DEF_3: null,
+    MID_1: null,
+    MID_2: null,
+    WING_1: null,
+    WING_2: null,
+    ST: null,
+  });
+  const [redFormation, setRedFormation] = useState<FormationAssignment>({
+    GK: null,
+    DEF_1: null,
+    DEF_2: null,
+    DEF_3: null,
+    MID_1: null,
+    MID_2: null,
+    WING_1: null,
+    WING_2: null,
+    ST: null,
+  });
   const [yellowScore, setYellowScore] = useState(0);
   const [redScore, setRedScore] = useState(0);
   const [events, setEvents] = useState<MatchEvent[]>([]);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Extract player IDs from formations
+  const yellowPlayerIds = Object.values(yellowFormation).filter((id): id is string => id !== null);
+  const redPlayerIds = Object.values(redFormation).filter((id): id is string => id !== null);
 
   const canStartMatch = yellowPlayerIds.length === 9 && redPlayerIds.length === 9;
 
   const handleStartMatch = () => {
-    const match = createMatch(date, yellowPlayerIds, redPlayerIds);
-    if (match) {
-      setCurrentMatchId(match.id);
-      setStep('recording');
-    }
+    // Don't create match in DB yet - only when saving
+    setStep('recording');
+    setHasUnsavedChanges(true);
   };
 
   const handleAddGoal = (team: TeamColor, scorerId: string, assistId?: string) => {
-    if (!currentMatchId) return;
-
     const event: MatchEvent = {
       type: 'goal',
       playerId: scorerId,
@@ -86,20 +107,16 @@ export function NewMatch() {
       timestamp: new Date().toISOString(),
     };
 
-    const success = addMatchEvent(currentMatchId, event);
-    if (success) {
-      setEvents(prev => [...prev, event]);
-      if (team === 'yellow') {
-        setYellowScore(prev => prev + 1);
-      } else {
-        setRedScore(prev => prev + 1);
-      }
+    setEvents(prev => [...prev, event]);
+    if (team === 'yellow') {
+      setYellowScore(prev => prev + 1);
+    } else {
+      setRedScore(prev => prev + 1);
     }
+    setHasUnsavedChanges(true);
   };
 
   const handleAddOwnGoal = (team: TeamColor, playerId: string) => {
-    if (!currentMatchId) return;
-
     const event: MatchEvent = {
       type: 'own-goal',
       playerId,
@@ -107,53 +124,122 @@ export function NewMatch() {
       timestamp: new Date().toISOString(),
     };
 
-    const success = addMatchEvent(currentMatchId, event);
-    if (success) {
-      setEvents(prev => [...prev, event]);
-      // Own goal increases opponent's score
-      if (team === 'yellow') {
-        setRedScore(prev => prev + 1);
-      } else {
-        setYellowScore(prev => prev + 1);
-      }
+    setEvents(prev => [...prev, event]);
+    // Own goal increases opponent's score
+    if (team === 'yellow') {
+      setRedScore(prev => prev + 1);
+    } else {
+      setYellowScore(prev => prev + 1);
     }
+    setHasUnsavedChanges(true);
   };
 
   const handleUndo = () => {
-    if (!currentMatchId || events.length === 0) return;
+    if (events.length === 0) return;
 
-    const success = removeLastEvent(currentMatchId);
-    if (success) {
-      setEvents(prev => prev.slice(0, -1));
+    setEvents(prev => prev.slice(0, -1));
 
-      // Recalculate scores
-      let newYellowScore = 0;
-      let newRedScore = 0;
-      events.slice(0, -1).forEach(e => {
-        if (e.type === 'goal') {
-          if (e.team === 'yellow') newYellowScore++;
-          else newRedScore++;
-        } else if (e.type === 'own-goal') {
-          if (e.team === 'yellow') newRedScore++;
-          else newYellowScore++;
-        }
+    // Recalculate scores
+    let newYellowScore = 0;
+    let newRedScore = 0;
+    events.slice(0, -1).forEach(e => {
+      if (e.type === 'goal') {
+        if (e.team === 'yellow') newYellowScore++;
+        else newRedScore++;
+      } else if (e.type === 'own-goal') {
+        if (e.team === 'yellow') newRedScore++;
+        else newYellowScore++;
+      }
+    });
+    setYellowScore(newYellowScore);
+    setRedScore(newRedScore);
+  };
+
+  const handleSaveMatch = async () => {
+    // Add clean sheet events for players whose team didn't concede
+    const cleanSheetEvents: MatchEvent[] = [];
+
+    if (redScore === 0) {
+      // Yellow team kept a clean sheet
+      yellowPlayerIds.forEach(playerId => {
+        cleanSheetEvents.push({
+          type: 'clean-sheet',
+          playerId,
+          team: 'yellow',
+        });
       });
-      setYellowScore(newYellowScore);
-      setRedScore(newRedScore);
+    }
+
+    if (yellowScore === 0) {
+      // Red team kept a clean sheet
+      redPlayerIds.forEach(playerId => {
+        cleanSheetEvents.push({
+          type: 'clean-sheet',
+          playerId,
+          team: 'red',
+        });
+      });
+    }
+
+    // Combine all events
+    const allEvents = [...events, ...cleanSheetEvents];
+
+    // Create the match with final scores and all events
+    const match = await createMatch(date, yellowPlayerIds, redPlayerIds);
+    if (!match) {
+      alert('Failed to save match. Please try again.');
+      return;
+    }
+
+    // Update the match with final scores and events
+    const success = await updateMatch(match.id, {
+      yellowTeam: { ...match.yellowTeam, score: yellowScore },
+      redTeam: { ...match.redTeam, score: redScore },
+      events: allEvents,
+    });
+
+    if (success) {
+      setHasUnsavedChanges(false);
+      alert('Match saved successfully!');
+      navigate('/');
+    } else {
+      alert('Failed to save match details. Please try again.');
     }
   };
 
-  const handleEndMatch = () => {
-    if (!currentMatchId) return;
-
-    const success = finalizeMatch(currentMatchId);
-    if (success) {
-      navigate(`/match/${currentMatchId}`);
+  const handleDiscardMatch = () => {
+    // Warn user if there are events
+    if (hasUnsavedChanges) {
+      const confirmed = window.confirm(
+        'Are you sure you want to discard this match?\n\n' +
+        'All recorded events will be lost. This action cannot be undone.'
+      );
+      if (!confirmed) return;
     }
+
+    // Reset to setup (match was never saved to DB)
+    setYellowScore(0);
+    setRedScore(0);
+    setEvents([]);
+    setHasUnsavedChanges(false);
+    setStep('setup');
   };
 
   const yellowPlayers = players.filter(p => yellowPlayerIds.includes(p.id));
   const redPlayers = players.filter(p => redPlayerIds.includes(p.id));
+
+  // Warn about unsaved changes when navigating away
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
 
   if (players.length < 18) {
     return (
@@ -195,21 +281,19 @@ export function NewMatch() {
             </div>
 
             <div className={styles.teams}>
-              <TeamSelector
+              <FormationSelector
                 team="yellow"
-                players={players}
-                selectedPlayerIds={yellowPlayerIds}
+                players={players.filter(p => !p.archived)}
+                formation={yellowFormation}
                 excludePlayerIds={redPlayerIds}
-                onSelectionChange={setYellowPlayerIds}
-                requiredCount={9}
+                onFormationChange={setYellowFormation}
               />
-              <TeamSelector
+              <FormationSelector
                 team="red"
-                players={players}
-                selectedPlayerIds={redPlayerIds}
+                players={players.filter(p => !p.archived)}
+                formation={redFormation}
                 excludePlayerIds={yellowPlayerIds}
-                onSelectionChange={setRedPlayerIds}
-                requiredCount={9}
+                onFormationChange={setRedFormation}
               />
             </div>
           </div>
@@ -247,8 +331,11 @@ export function NewMatch() {
           </div>
 
           <div className={styles.actions}>
-            <Button appearance="primary" onClick={handleEndMatch}>
-              End Match
+            <Button appearance="primary" onClick={handleSaveMatch}>
+              Save Match
+            </Button>
+            <Button appearance="secondary" onClick={handleDiscardMatch}>
+              Discard Match
             </Button>
           </div>
         </div>

@@ -16,55 +16,66 @@ import { formatDate } from '../utils/helpers';
 
 const useStyles = makeStyles({
   container: {
-    maxWidth: '900px',
+    maxWidth: '1400px',
     margin: '0 auto',
+    padding: '0 16px',
   },
   scoreBoard: {
-    display: 'flex',
-    justifyContent: 'center',
+    display: 'grid',
+    gridTemplateColumns: '1fr auto 1fr',
     alignItems: 'center',
     gap: '32px',
-    padding: '32px',
-    marginBottom: '24px',
+    padding: '24px',
+    backgroundColor: tokens.colorNeutralBackground2,
+    borderRadius: tokens.borderRadiusLarge,
   },
   score: {
-    fontSize: '64px',
+    fontSize: '48px',
     fontWeight: tokens.fontWeightBold,
+    marginTop: '8px',
   },
   result: {
     textAlign: 'center',
-    fontSize: tokens.fontSizeBase500,
+    fontSize: tokens.fontSizeBase400,
     fontWeight: tokens.fontWeightSemibold,
     marginTop: '16px',
+    marginBottom: '24px',
   },
   section: {
     marginBottom: '24px',
-  },
-  sectionTitle: {
-    fontSize: tokens.fontSizeBase400,
-    fontWeight: tokens.fontWeightSemibold,
-    marginBottom: '12px',
   },
   teams: {
     display: 'grid',
     gridTemplateColumns: '1fr 1fr',
     gap: '24px',
-    marginBottom: '24px',
   },
   team: {
-    padding: '16px',
-    backgroundColor: tokens.colorNeutralBackground2,
-    borderRadius: tokens.borderRadiusLarge,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
   },
   teamHeader: {
     fontSize: tokens.fontSizeBase400,
     fontWeight: tokens.fontWeightSemibold,
-    marginBottom: '12px',
+    padding: '8px 12px',
+    borderRadius: tokens.borderRadiusLarge,
+    textAlign: 'center',
   },
   playerList: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '8px',
+    gap: '6px',
+  },
+  playerItem: {
+    fontSize: tokens.fontSizeBase200,
+  },
+  sectionTitle: {
+    fontSize: tokens.fontSizeBase200,
+    fontWeight: tokens.fontWeightSemibold,
+    color: tokens.colorNeutralForeground3,
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+    marginBottom: '12px',
   },
   actions: {
     display: 'flex',
@@ -149,32 +160,22 @@ export function MatchDetails() {
         }
       />
 
-      <Card className={styles.scoreBoard}>
-        <div style={{ textAlign: 'center' }}>
-          <Badge
-            appearance="filled"
-            size="extra-large"
-            style={{ backgroundColor: '#FFD700', color: '#000', marginBottom: '12px' }}
-          >
-            Yellow
-          </Badge>
-          <div className={styles.score} style={{ color: '#FFD700' }}>
-            {yellowScore}
+      <Card>
+        <div className={styles.scoreBoard}>
+          <div style={{ textAlign: 'center' }}>
+            <Text weight="semibold">Yellow</Text>
+            <div className={styles.score} style={{ color: '#FFD700' }}>
+              {yellowScore}
+            </div>
           </div>
-        </div>
 
-        <Text size={800}>-</Text>
+          <Text size={600}>-</Text>
 
-        <div style={{ textAlign: 'center' }}>
-          <Badge
-            appearance="filled"
-            size="extra-large"
-            style={{ backgroundColor: '#DC143C', marginBottom: '12px' }}
-          >
-            Red
-          </Badge>
-          <div className={styles.score} style={{ color: '#DC143C' }}>
-            {redScore}
+          <div style={{ textAlign: 'center' }}>
+            <Text weight="semibold">Red</Text>
+            <div className={styles.score} style={{ color: '#DC143C' }}>
+              {redScore}
+            </div>
           </div>
         </div>
       </Card>
@@ -184,26 +185,35 @@ export function MatchDetails() {
       </div>
 
       <div className={styles.section}>
-        <div className={styles.sectionTitle}>Teams</div>
         <div className={styles.teams}>
           <div className={styles.team}>
-            <div className={styles.teamHeader} style={{ color: '#FFD700' }}>
+            <div
+              className={styles.teamHeader}
+              style={{ backgroundColor: '#FFD700', color: '#000' }}
+            >
               Yellow Team
             </div>
             <div className={styles.playerList}>
               {yellowPlayers.map(player => (
-                <Text key={player.id}>{player.name}</Text>
+                <Text key={player.id} className={styles.playerItem}>
+                  {player.name}
+                </Text>
               ))}
             </div>
           </div>
 
           <div className={styles.team}>
-            <div className={styles.teamHeader} style={{ color: '#DC143C' }}>
+            <div
+              className={styles.teamHeader}
+              style={{ backgroundColor: '#DC143C', color: '#fff' }}
+            >
               Red Team
             </div>
             <div className={styles.playerList}>
               {redPlayers.map(player => (
-                <Text key={player.id}>{player.name}</Text>
+                <Text key={player.id} className={styles.playerItem}>
+                  {player.name}
+                </Text>
               ))}
             </div>
           </div>
@@ -211,7 +221,7 @@ export function MatchDetails() {
       </div>
 
       <div className={styles.section}>
-        <div className={styles.sectionTitle}>Match Events</div>
+        <Text className={styles.sectionTitle}>Match Events</Text>
         <MatchEventList events={match.events} players={players} />
       </div>
     </div>

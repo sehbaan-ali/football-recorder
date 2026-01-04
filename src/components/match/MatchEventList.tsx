@@ -2,12 +2,7 @@ import {
   makeStyles,
   tokens,
   Text,
-  Card,
 } from '@fluentui/react-components';
-import {
-  SportSoccer24Filled,
-  Warning24Filled,
-} from '@fluentui/react-icons';
 import type { Player, MatchEvent } from '../../types';
 import { getPlayerName } from '../../utils/helpers';
 
@@ -15,28 +10,44 @@ const useStyles = makeStyles({
   container: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '8px',
-    maxHeight: '400px',
-    overflowY: 'auto',
+    gap: '10px',
   },
-  event: {
+  section: {
     display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    padding: '12px',
+    flexDirection: 'column',
+    gap: '6px',
   },
-  icon: {
-    flexShrink: 0,
+  sectionLabel: {
+    fontSize: tokens.fontSizeBase200,
+    fontWeight: tokens.fontWeightSemibold,
+    color: tokens.colorNeutralForeground3,
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
   },
-  content: {
-    flex: 1,
+  columns: {
+    display: 'inline-grid',
+    gridTemplateColumns: 'auto auto',
+    gap: '16px',
+    justifyContent: 'start',
+  },
+  column: {
     display: 'flex',
     flexDirection: 'column',
     gap: '4px',
   },
+  leftColumn: {
+    borderRight: `1px solid ${tokens.colorNeutralStroke2}`,
+    paddingRight: '12px',
+  },
+  eventItem: {
+    fontSize: tokens.fontSizeBase200,
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+  },
   empty: {
     textAlign: 'center',
-    padding: '24px',
+    padding: '16px',
     color: tokens.colorNeutralForeground2,
   },
 });
@@ -59,43 +70,121 @@ export function MatchEventList({ events, players }: MatchEventListProps) {
 
   const displayEvents = events.filter(e => e.type !== 'clean-sheet');
 
+  // Aggregate goals by player and team
+  const aggregateGoals = (team: 'yellow' | 'red') => {
+    const goals = displayEvents.filter(e => e.team === team && (e.type === 'goal' || e.type === 'own-goal'));
+    const playerGoalCount = new Map<string, { count: number; isOwnGoal: boolean }>();
+
+    goals.forEach(goal => {
+      const current = playerGoalCount.get(goal.playerId) || { count: 0, isOwnGoal: false };
+      playerGoalCount.set(goal.playerId, {
+        count: current.count + 1,
+        isOwnGoal: goal.type === 'own-goal'
+      });
+    });
+
+    return Array.from(playerGoalCount.entries());
+  };
+
+  // Aggregate assists by player and team
+  const aggregateAssists = (team: 'yellow' | 'red') => {
+    const assists = displayEvents.filter(e => e.team === team && e.type === 'goal' && e.assistPlayerId);
+    const playerAssistCount = new Map<string, number>();
+
+    assists.forEach(assist => {
+      const playerId = assist.assistPlayerId!;
+      playerAssistCount.set(playerId, (playerAssistCount.get(playerId) || 0) + 1);
+    });
+
+    return Array.from(playerAssistCount.entries());
+  };
+
+  const yellowGoals = aggregateGoals('yellow');
+  const redGoals = aggregateGoals('red');
+  const yellowAssists = aggregateAssists('yellow');
+  const redAssists = aggregateAssists('red');
+
   return (
     <div className={styles.container}>
-      {displayEvents.map((event, index) => {
-        const teamColor = event.team === 'yellow' ? '#FFD700' : '#DC143C';
-        const playerName = getPlayerName(event.playerId, players);
-
-        return (
-          <Card key={index} className={styles.event}>
-            <div className={styles.icon} style={{ color: teamColor }}>
-              {event.type === 'goal' ? (
-                <SportSoccer24Filled />
-              ) : (
-                <Warning24Filled />
-              )}
-            </div>
-            <div className={styles.content}>
-              {event.type === 'goal' && (
-                <>
-                  <Text weight="semibold">
-                    Goal by {playerName}
-                  </Text>
-                  {event.assistPlayerId && (
-                    <Text size={200} style={{ color: tokens.colorNeutralForeground2 }}>
-                      Assist: {getPlayerName(event.assistPlayerId, players)}
+      {/* Goals Section */}
+      <div className={styles.section}>
+        <Text className={styles.sectionLabel}>Goals</Text>
+        <div className={styles.columns}>
+          <div className={`${styles.column} ${styles.leftColumn}`}>
+            {yellowGoals.length > 0 ? (
+              yellowGoals.map(([playerId, data]) => (
+                <div key={playerId} className={styles.eventItem}>
+                  <span>{data.isOwnGoal ? '⚠️'.repeat(data.count) : '⚽'.repeat(data.count)}</span>
+                  <Text>{getPlayerName(playerId, players)}</Text>
+                  {data.isOwnGoal && (
+                    <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
+                      (OG)
                     </Text>
                   )}
-                </>
-              )}
-              {event.type === 'own-goal' && (
-                <Text weight="semibold">
-                  Own Goal by {playerName}
-                </Text>
-              )}
-            </div>
-          </Card>
-        );
-      })}
+                </div>
+              ))
+            ) : (
+              <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
+                -
+              </Text>
+            )}
+          </div>
+          <div className={styles.column}>
+            {redGoals.length > 0 ? (
+              redGoals.map(([playerId, data]) => (
+                <div key={playerId} className={styles.eventItem}>
+                  <span>{data.isOwnGoal ? '⚠️'.repeat(data.count) : '⚽'.repeat(data.count)}</span>
+                  <Text>{getPlayerName(playerId, players)}</Text>
+                  {data.isOwnGoal && (
+                    <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
+                      (OG)
+                    </Text>
+                  )}
+                </div>
+              ))
+            ) : (
+              <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
+                -
+              </Text>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Assists Section */}
+      <div className={styles.section}>
+        <Text className={styles.sectionLabel}>Assists</Text>
+        <div className={styles.columns}>
+          <div className={`${styles.column} ${styles.leftColumn}`}>
+            {yellowAssists.length > 0 ? (
+              yellowAssists.map(([playerId, count]) => (
+                <div key={playerId} className={styles.eventItem}>
+                  <span>{'👟'.repeat(count)}</span>
+                  <Text>{getPlayerName(playerId, players)}</Text>
+                </div>
+              ))
+            ) : (
+              <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
+                -
+              </Text>
+            )}
+          </div>
+          <div className={styles.column}>
+            {redAssists.length > 0 ? (
+              redAssists.map(([playerId, count]) => (
+                <div key={playerId} className={styles.eventItem}>
+                  <span>{'👟'.repeat(count)}</span>
+                  <Text>{getPlayerName(playerId, players)}</Text>
+                </div>
+              ))
+            ) : (
+              <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
+                -
+              </Text>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

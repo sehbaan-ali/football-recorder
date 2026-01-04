@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Button,
@@ -9,10 +10,12 @@ import {
 import { AddCircle24Regular, Trophy24Filled } from '@fluentui/react-icons';
 import { PageHeader } from '../components/layout/PageHeader';
 import { MatchCard } from '../components/match/MatchCard';
+import { MatchDetailsModal } from '../components/match/MatchDetailsModal';
 import { usePlayers } from '../hooks/usePlayers';
 import { useMatches } from '../hooks/useMatches';
 import { useStats } from '../hooks/useStats';
 import { StatsService } from '../services/stats';
+import type { Match } from '../types';
 
 const useStyles = makeStyles({
   grid: {
@@ -72,8 +75,9 @@ export function Dashboard() {
   const styles = useStyles();
   const navigate = useNavigate();
   const { players, loading: playersLoading } = usePlayers();
-  const { matches, loading: matchesLoading } = useMatches();
+  const { matches, deleteMatch, loading: matchesLoading } = useMatches();
   const { playerStats } = useStats(players, matches);
+  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
 
   const loading = playersLoading || matchesLoading;
   const totalMatches = matches.length;
@@ -149,7 +153,11 @@ export function Dashboard() {
             <div className={styles.sectionTitle}>Recent Matches</div>
             <div className={styles.matchGrid}>
               {recentMatches.map(match => (
-                <MatchCard key={match.id} match={match} />
+                <MatchCard
+                  key={match.id}
+                  match={match}
+                  onClick={() => setSelectedMatch(match)}
+                />
               ))}
             </div>
           </div>
@@ -226,6 +234,17 @@ export function Dashboard() {
           </Button>
         </div>
       )}
+
+      <MatchDetailsModal
+        match={selectedMatch}
+        players={players}
+        open={selectedMatch !== null}
+        onClose={() => setSelectedMatch(null)}
+        onDelete={(matchId) => {
+          deleteMatch(matchId);
+          setSelectedMatch(null);
+        }}
+      />
     </div>
   );
 }

@@ -28,8 +28,8 @@ const useStyles = makeStyles({
     gap: '24px',
   },
   scoreBoard: {
-    display: 'flex',
-    justifyContent: 'center',
+    display: 'grid',
+    gridTemplateColumns: '1fr auto 1fr',
     alignItems: 'center',
     gap: '32px',
     padding: '24px',
@@ -39,6 +39,7 @@ const useStyles = makeStyles({
   score: {
     fontSize: '48px',
     fontWeight: tokens.fontWeightBold,
+    marginTop: '8px',
   },
   teams: {
     display: 'grid',

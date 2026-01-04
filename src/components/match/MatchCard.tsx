@@ -1,5 +1,4 @@
 import { Card, Text, makeStyles, tokens, Badge } from '@fluentui/react-components';
-import { useNavigate } from 'react-router-dom';
 import type { Match } from '../../types';
 import { formatDate } from '../../utils/helpers';
 
@@ -41,11 +40,11 @@ const useStyles = makeStyles({
 
 interface MatchCardProps {
   match: Match;
+  onClick?: () => void;
 }
 
-export function MatchCard({ match }: MatchCardProps) {
+export function MatchCard({ match, onClick }: MatchCardProps) {
   const styles = useStyles();
-  const navigate = useNavigate();
 
   const yellowScore = match.yellowTeam.score;
   const redScore = match.redTeam.score;
@@ -57,7 +56,7 @@ export function MatchCard({ match }: MatchCardProps) {
   return (
     <Card
       className={styles.card}
-      onClick={() => navigate(`/match/${match.id}`)}
+      onClick={onClick}
     >
       <div className={styles.content}>
         <div className={styles.date}>{formatDate(match.date)}</div>
