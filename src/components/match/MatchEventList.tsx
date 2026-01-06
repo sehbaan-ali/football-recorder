@@ -1,56 +1,8 @@
-import {
-  makeStyles,
-  tokens,
-  Text,
-} from '@fluentui/react-components';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import type { Player, MatchEvent } from '../../types';
 import { getPlayerName } from '../../utils/helpers';
-
-const useStyles = makeStyles({
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '10px',
-  },
-  section: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px',
-  },
-  sectionLabel: {
-    fontSize: tokens.fontSizeBase200,
-    fontWeight: tokens.fontWeightSemibold,
-    color: tokens.colorNeutralForeground3,
-    textTransform: 'uppercase',
-    letterSpacing: '0.5px',
-  },
-  columns: {
-    display: 'inline-grid',
-    gridTemplateColumns: 'auto auto',
-    gap: '16px',
-    justifyContent: 'start',
-  },
-  column: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '4px',
-  },
-  leftColumn: {
-    borderRight: `1px solid ${tokens.colorNeutralStroke2}`,
-    paddingRight: '12px',
-  },
-  eventItem: {
-    fontSize: tokens.fontSizeBase200,
-    display: 'flex',
-    alignItems: 'center',
-    gap: '4px',
-  },
-  empty: {
-    textAlign: 'center',
-    padding: '16px',
-    color: tokens.colorNeutralForeground2,
-  },
-});
+import { cn } from '@/lib/utils';
 
 interface MatchEventListProps {
   events: MatchEvent[];
@@ -58,13 +10,15 @@ interface MatchEventListProps {
 }
 
 export function MatchEventList({ events, players }: MatchEventListProps) {
-  const styles = useStyles();
-
   if (events.length === 0) {
     return (
-      <div className={styles.empty}>
-        <Text>No events yet. Start recording goals and assists!</Text>
-      </div>
+      <Card>
+        <CardContent className="py-8">
+          <p className="text-center text-muted-foreground">
+            No events yet. Start recording goals and assists!
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -105,86 +59,117 @@ export function MatchEventList({ events, players }: MatchEventListProps) {
   const redAssists = aggregateAssists('red');
 
   return (
-    <div className={styles.container}>
-      {/* Goals Section */}
-      <div className={styles.section}>
-        <Text className={styles.sectionLabel}>Goals</Text>
-        <div className={styles.columns}>
-          <div className={`${styles.column} ${styles.leftColumn}`}>
-            {yellowGoals.length > 0 ? (
-              yellowGoals.map(([playerId, data]) => (
-                <div key={playerId} className={styles.eventItem}>
-                  <span>{data.isOwnGoal ? '⚠️'.repeat(data.count) : '⚽'.repeat(data.count)}</span>
-                  <Text>{getPlayerName(playerId, players)}</Text>
-                  {data.isOwnGoal && (
-                    <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
-                      (OG)
-                    </Text>
-                  )}
-                </div>
-              ))
-            ) : (
-              <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
-                -
-              </Text>
-            )}
+    <Card>
+      <CardHeader className="pb-3">
+        <h3 className="text-sm font-semibold">Match Summary</h3>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Goals Section */}
+        <div className="space-y-3">
+          <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            Goals
           </div>
-          <div className={styles.column}>
-            {redGoals.length > 0 ? (
-              redGoals.map(([playerId, data]) => (
-                <div key={playerId} className={styles.eventItem}>
-                  <span>{data.isOwnGoal ? '⚠️'.repeat(data.count) : '⚽'.repeat(data.count)}</span>
-                  <Text>{getPlayerName(playerId, players)}</Text>
-                  {data.isOwnGoal && (
-                    <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
-                      (OG)
-                    </Text>
-                  )}
+          <div className="grid grid-cols-2 gap-6">
+            {/* Yellow Team Goals */}
+            <div className="space-y-2">
+              <Badge className="bg-yellow-500 text-black hover:bg-yellow-600 mb-2">
+                Yellow
+              </Badge>
+              {yellowGoals.length > 0 ? (
+                <div className="space-y-1.5">
+                  {yellowGoals.map(([playerId, data]) => (
+                    <div key={playerId} className="flex items-center gap-2 text-sm">
+                      <span className="text-base">
+                        {data.isOwnGoal ? '⚠️'.repeat(data.count) : '⚽'.repeat(data.count)}
+                      </span>
+                      <span>{getPlayerName(playerId, players)}</span>
+                      {data.isOwnGoal && (
+                        <Badge variant="outline" className="text-[10px] px-1 py-0 text-amber-600">
+                          OG
+                        </Badge>
+                      )}
+                    </div>
+                  ))}
                 </div>
-              ))
-            ) : (
-              <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
-                -
-              </Text>
-            )}
-          </div>
-        </div>
-      </div>
+              ) : (
+                <div className="text-sm text-muted-foreground">-</div>
+              )}
+            </div>
 
-      {/* Assists Section */}
-      <div className={styles.section}>
-        <Text className={styles.sectionLabel}>Assists</Text>
-        <div className={styles.columns}>
-          <div className={`${styles.column} ${styles.leftColumn}`}>
-            {yellowAssists.length > 0 ? (
-              yellowAssists.map(([playerId, count]) => (
-                <div key={playerId} className={styles.eventItem}>
-                  <span>{'👟'.repeat(count)}</span>
-                  <Text>{getPlayerName(playerId, players)}</Text>
+            {/* Red Team Goals */}
+            <div className="space-y-2">
+              <Badge className="bg-red-500 text-white hover:bg-red-600 mb-2">
+                Red
+              </Badge>
+              {redGoals.length > 0 ? (
+                <div className="space-y-1.5">
+                  {redGoals.map(([playerId, data]) => (
+                    <div key={playerId} className="flex items-center gap-2 text-sm">
+                      <span className="text-base">
+                        {data.isOwnGoal ? '⚠️'.repeat(data.count) : '⚽'.repeat(data.count)}
+                      </span>
+                      <span>{getPlayerName(playerId, players)}</span>
+                      {data.isOwnGoal && (
+                        <Badge variant="outline" className="text-[10px] px-1 py-0 text-amber-600">
+                          OG
+                        </Badge>
+                      )}
+                    </div>
+                  ))}
                 </div>
-              ))
-            ) : (
-              <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
-                -
-              </Text>
-            )}
-          </div>
-          <div className={styles.column}>
-            {redAssists.length > 0 ? (
-              redAssists.map(([playerId, count]) => (
-                <div key={playerId} className={styles.eventItem}>
-                  <span>{'👟'.repeat(count)}</span>
-                  <Text>{getPlayerName(playerId, players)}</Text>
-                </div>
-              ))
-            ) : (
-              <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
-                -
-              </Text>
-            )}
+              ) : (
+                <div className="text-sm text-muted-foreground">-</div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+
+        {/* Assists Section */}
+        <div className="space-y-3">
+          <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            Assists
+          </div>
+          <div className="grid grid-cols-2 gap-6">
+            {/* Yellow Team Assists */}
+            <div className="space-y-2">
+              <Badge className="bg-yellow-500 text-black hover:bg-yellow-600 mb-2">
+                Yellow
+              </Badge>
+              {yellowAssists.length > 0 ? (
+                <div className="space-y-1.5">
+                  {yellowAssists.map(([playerId, count]) => (
+                    <div key={playerId} className="flex items-center gap-2 text-sm">
+                      <span className="text-base">{'👟'.repeat(count)}</span>
+                      <span>{getPlayerName(playerId, players)}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-sm text-muted-foreground">-</div>
+              )}
+            </div>
+
+            {/* Red Team Assists */}
+            <div className="space-y-2">
+              <Badge className="bg-red-500 text-white hover:bg-red-600 mb-2">
+                Red
+              </Badge>
+              {redAssists.length > 0 ? (
+                <div className="space-y-1.5">
+                  {redAssists.map(([playerId, count]) => (
+                    <div key={playerId} className="flex items-center gap-2 text-sm">
+                      <span className="text-base">{'👟'.repeat(count)}</span>
+                      <span>{getPlayerName(playerId, players)}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-sm text-muted-foreground">-</div>
+              )}
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

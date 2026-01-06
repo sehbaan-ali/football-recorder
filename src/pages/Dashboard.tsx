@@ -1,15 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Button,
-  Card,
-  Text,
-  makeStyles,
-  tokens,
-  Tooltip,
-} from '@fluentui/react-components';
-import { AddCircle24Regular, Trophy24Filled } from '@fluentui/react-icons';
-import { PageHeader } from '../components/layout/PageHeader';
+import { Plus, Trophy, TrendingUp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MatchCard } from '../components/match/MatchCard';
 import { MatchDetailsModal } from '../components/match/MatchDetailsModal';
 import { usePlayers } from '../hooks/usePlayers';
@@ -19,62 +12,7 @@ import { StatsService } from '../services/stats';
 import { useAuth } from '../contexts/AuthContext';
 import type { Match } from '../types';
 
-const useStyles = makeStyles({
-  grid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '16px',
-    marginBottom: '32px',
-  },
-  statCard: {
-    padding: '24px',
-    textAlign: 'center',
-  },
-  statValue: {
-    fontSize: tokens.fontSizeHero800,
-    fontWeight: tokens.fontWeightBold,
-    color: tokens.colorBrandForeground1,
-    marginTop: '8px',
-  },
-  statLabel: {
-    fontSize: tokens.fontSizeBase300,
-    color: tokens.colorNeutralForeground2,
-  },
-  section: {
-    marginBottom: '32px',
-  },
-  sectionTitle: {
-    fontSize: tokens.fontSizeBase500,
-    fontWeight: tokens.fontWeightSemibold,
-    marginBottom: '16px',
-  },
-  matchGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
-    gap: '16px',
-  },
-  topPlayers: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '12px',
-  },
-  playerRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '12px',
-    backgroundColor: tokens.colorNeutralBackground2,
-    borderRadius: tokens.borderRadiusMedium,
-  },
-  empty: {
-    textAlign: 'center',
-    padding: '48px 16px',
-    color: tokens.colorNeutralForeground2,
-  },
-});
-
 export function Dashboard() {
-  const styles = useStyles();
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
   const { players, loading: playersLoading } = usePlayers();
@@ -92,75 +30,93 @@ export function Dashboard() {
   const topByWins = StatsService.getTopPlayers(playerStats, 'wins', 3);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    );
   }
 
   if (totalPlayers === 0) {
     return (
-      <div>
-        <PageHeader
-          title="Dashboard"
-          subtitle="Overview of your football matches"
-        />
-        <div className={styles.empty}>
-          <Text size={500}>Welcome to Football Recorder!</Text>
-          <p>Get started by adding some players.</p>
-          <Button
-            appearance="primary"
-            onClick={() => navigate('/players')}
-            style={{ marginTop: '16px' }}
-          >
-            Add Players
-          </Button>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground">Overview of your football matches</p>
         </div>
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-16">
+            <h2 className="text-xl font-semibold mb-2">Welcome to Football Recorder!</h2>
+            <p className="text-muted-foreground mb-6">Get started by adding some players.</p>
+            <Button onClick={() => navigate('/players')}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Players
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div>
-      <PageHeader
-        title="Dashboard"
-        subtitle="Overview of your football matches"
-        actions={
-          <Tooltip
-            content={isAdmin ? "Record a new match" : "Login required to record matches"}
-            relationship="description"
-          >
-            <Button
-              appearance="primary"
-              icon={<AddCircle24Regular />}
-              onClick={() => navigate('/match/new')}
-              disabled={!isAdmin}
-            >
-              Record New Match
-            </Button>
-          </Tooltip>
-        }
-      />
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground">Overview of your football matches</p>
+        </div>
+        <Button
+          onClick={() => navigate('/match/new')}
+          disabled={!isAdmin}
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Record New Match
+        </Button>
+      </div>
 
-      <div className={styles.grid}>
-        <Card className={styles.statCard}>
-          <div className={styles.statLabel}>Total Matches</div>
-          <div className={styles.statValue}>{totalMatches}</div>
+      {/* Stats Grid */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Total Matches
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{totalMatches}</div>
+          </CardContent>
         </Card>
-        <Card className={styles.statCard}>
-          <div className={styles.statLabel}>Total Players</div>
-          <div className={styles.statValue}>{totalPlayers}</div>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Total Players
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{totalPlayers}</div>
+          </CardContent>
         </Card>
-        <Card className={styles.statCard}>
-          <div className={styles.statLabel}>Total Goals</div>
-          <div className={styles.statValue}>
-            {playerStats.reduce((sum, s) => sum + s.goals, 0)}
-          </div>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Total Goals
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">
+              {playerStats.reduce((sum, s) => sum + s.goals, 0)}
+            </div>
+          </CardContent>
         </Card>
       </div>
 
       {totalMatches > 0 && (
         <>
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>Recent Matches</div>
-            <div className={styles.matchGrid}>
+          {/* Recent Matches */}
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold">Recent Matches</h2>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {recentMatches.map(match => (
                 <MatchCard
                   key={match.id}
@@ -171,77 +127,79 @@ export function Dashboard() {
             </div>
           </div>
 
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>
-              <Trophy24Filled style={{ color: '#FFD700', marginRight: '8px' }} />
-              Top Players
+          {/* Top Players */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Trophy className="h-5 w-5 text-yellow-600" />
+              <h2 className="text-xl font-semibold">Top Players</h2>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
-              <div>
-                <Text weight="semibold" style={{ marginBottom: '12px', display: 'block' }}>
-                  Most Goals
-                </Text>
-                <div className={styles.topPlayers}>
+            <div className="grid gap-6 md:grid-cols-3">
+              {/* Most Goals */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Most Goals</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
                   {topByGoals.slice(0, 3).map((stat, index) => (
-                    <div key={stat.playerId} className={styles.playerRow}>
-                      <span>
+                    <div key={stat.playerId} className="flex items-center justify-between p-3 bg-muted/50 rounded-md">
+                      <span className="text-sm">
                         {index + 1}. {stat.playerName}
                       </span>
-                      <Text weight="semibold">{stat.goals} goals</Text>
+                      <span className="font-semibold text-sm">{stat.goals} goals</span>
                     </div>
                   ))}
-                </div>
-              </div>
+                </CardContent>
+              </Card>
 
-              <div>
-                <Text weight="semibold" style={{ marginBottom: '12px', display: 'block' }}>
-                  Most Assists
-                </Text>
-                <div className={styles.topPlayers}>
+              {/* Most Assists */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Most Assists</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
                   {topByAssists.slice(0, 3).map((stat, index) => (
-                    <div key={stat.playerId} className={styles.playerRow}>
-                      <span>
+                    <div key={stat.playerId} className="flex items-center justify-between p-3 bg-muted/50 rounded-md">
+                      <span className="text-sm">
                         {index + 1}. {stat.playerName}
                       </span>
-                      <Text weight="semibold">{stat.assists} assists</Text>
+                      <span className="font-semibold text-sm">{stat.assists} assists</span>
                     </div>
                   ))}
-                </div>
-              </div>
+                </CardContent>
+              </Card>
 
-              <div>
-                <Text weight="semibold" style={{ marginBottom: '12px', display: 'block' }}>
-                  Most Wins
-                </Text>
-                <div className={styles.topPlayers}>
+              {/* Most Wins */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Most Wins</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
                   {topByWins.slice(0, 3).map((stat, index) => (
-                    <div key={stat.playerId} className={styles.playerRow}>
-                      <span>
+                    <div key={stat.playerId} className="flex items-center justify-between p-3 bg-muted/50 rounded-md">
+                      <span className="text-sm">
                         {index + 1}. {stat.playerName}
                       </span>
-                      <Text weight="semibold">{stat.wins} wins</Text>
+                      <span className="font-semibold text-sm">{stat.wins} wins</span>
                     </div>
                   ))}
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </>
       )}
 
       {totalMatches === 0 && (
-        <div className={styles.empty}>
-          <Text size={400}>No matches recorded yet.</Text>
-          <p>Record your first match to see statistics!</p>
-          <Button
-            appearance="primary"
-            icon={<AddCircle24Regular />}
-            onClick={() => navigate('/match/new')}
-            style={{ marginTop: '16px' }}
-          >
-            Record New Match
-          </Button>
-        </div>
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-16">
+            <p className="text-lg font-medium mb-2">No matches recorded yet.</p>
+            <p className="text-muted-foreground mb-6">Record your first match to see statistics!</p>
+            <Button onClick={() => navigate('/match/new')}>
+              <Plus className="h-4 w-4 mr-2" />
+              Record New Match
+            </Button>
+          </CardContent>
+        </Card>
       )}
 
       <MatchDetailsModal

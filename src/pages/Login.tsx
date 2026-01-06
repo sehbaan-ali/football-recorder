@@ -1,69 +1,19 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-  Card,
-  Input,
-  Button,
-  Text,
-  Label,
-  makeStyles,
-  tokens,
-} from '@fluentui/react-components';
-import { ArrowLeft24Regular } from '@fluentui/react-icons';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-
-const useStyles = makeStyles({
-  container: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    minHeight: '100vh',
-    backgroundColor: tokens.colorNeutralBackground2,
-  },
-  card: {
-    maxWidth: '400px',
-    width: '100%',
-    padding: '32px',
-  },
-  header: {
-    textAlign: 'center',
-    marginBottom: '24px',
-  },
-  title: {
-    fontSize: tokens.fontSizeHero700,
-    fontWeight: tokens.fontWeightSemibold,
-    marginBottom: '8px',
-  },
-  subtitle: {
-    color: tokens.colorNeutralForeground2,
-  },
-  form: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px',
-  },
-  field: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '4px',
-  },
-  error: {
-    color: tokens.colorPaletteRedForeground1,
-    fontSize: tokens.fontSizeBase200,
-    marginTop: '4px',
-  },
-  footer: {
-    textAlign: 'center',
-    marginTop: '16px',
-    color: tokens.colorNeutralForeground2,
-    fontSize: tokens.fontSizeBase200,
-  },
-});
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
 export function Login() {
-  const styles = useStyles();
   const navigate = useNavigate();
+  const location = useLocation();
   const { signIn } = useAuth();
+
+  // Get the page they were trying to access (or default to dashboard)
+  const from = (location.state as any)?.from?.pathname || '/';
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -81,8 +31,8 @@ export function Login() {
       if (signInError) {
         setError(signInError.message);
       } else {
-        // Successful login - redirect to dashboard
-        navigate('/');
+        // Successful login - redirect back to where they came from
+        navigate(from, { replace: true });
       }
     } catch (err) {
       setError('An unexpected error occurred');
@@ -92,66 +42,90 @@ export function Login() {
   };
 
   return (
-    <div className={styles.container}>
-      <Card className={styles.card}>
+    <div className="min-h-screen flex items-center justify-center bg-background p-6">
+      <div className="w-full max-w-md space-y-4">
+        {/* Back Button */}
         <Button
-          appearance="subtle"
-          icon={<ArrowLeft24Regular />}
-          onClick={() => navigate('/')}
-          style={{ marginBottom: '16px' }}
+          variant="ghost"
+          onClick={() => navigate(from)}
+          className="gap-2"
         >
+          <ArrowLeft className="h-4 w-4" />
           Back
         </Button>
-        <div className={styles.header}>
-          <div className={styles.title}>Football Recorder</div>
-          <Text className={styles.subtitle}>Login</Text>
-        </div>
 
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.field}>
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(_, data) => setEmail(data.value)}
-              placeholder="your@email.com"
-              required
-              disabled={loading}
-            />
-          </div>
+        {/* Login Card */}
+        <Card className="shadow-sm">
+          <CardHeader className="space-y-1 text-center pb-4">
+            <CardTitle className="text-2xl font-bold tracking-tight">
+              Football Recorder
+            </CardTitle>
+            <CardDescription>
+              Login to manage your matches
+            </CardDescription>
+          </CardHeader>
 
-          <div className={styles.field}>
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(_, data) => setPassword(data.value)}
-              placeholder="Enter your password"
-              required
-              disabled={loading}
-            />
-          </div>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Email Field */}
+              <div className="space-y-2">
+                <Label htmlFor="email">
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  required
+                  disabled={loading}
+                  className="h-10"
+                />
+              </div>
 
-          {error && (
-            <Text className={styles.error}>{error}</Text>
-          )}
+              {/* Password Field */}
+              <div className="space-y-2">
+                <Label htmlFor="password">
+                  Password
+                </Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  required
+                  disabled={loading}
+                  className="h-10"
+                />
+              </div>
 
-          <Button
-            appearance="primary"
-            type="submit"
-            disabled={loading}
-            style={{ marginTop: '8px' }}
-          >
-            {loading ? 'Signing in...' : 'Sign In'}
-          </Button>
-        </form>
+              {/* Error Message */}
+              {error && (
+                <div className="text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md px-3 py-2">
+                  {error}
+                </div>
+              )}
 
-        <div className={styles.footer}>
-          <Text>Admin access only</Text>
-        </div>
-      </Card>
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full h-10"
+              >
+                {loading ? 'Signing in...' : 'Sign In'}
+              </Button>
+            </form>
+          </CardContent>
+
+          <CardFooter className="justify-center">
+            <p className="text-xs text-muted-foreground">
+              Admin access only
+            </p>
+          </CardFooter>
+        </Card>
+      </div>
     </div>
   );
 }

@@ -1,27 +1,29 @@
-import { useMemo } from 'react';
+import { Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import {
-  Button,
-  Dropdown,
-  Option,
-  Badge,
-  makeStyles,
-  tokens,
-  Text,
-} from '@fluentui/react-components';
-import { Checkmark24Regular } from '@fluentui/react-icons';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
 import type { Player, TeamColor, PlayerPosition } from '../../types';
+import { cn } from '@/lib/utils';
 
 // Formation slot definitions
 const FORMATION_SLOTS = [
-  { id: 'GK', position: 'GK' as PlayerPosition, label: 'GK', row: 6 },
-  { id: 'DEF_1', position: 'DEF' as PlayerPosition, label: 'DEF 1', row: 5 },
-  { id: 'DEF_2', position: 'DEF' as PlayerPosition, label: 'DEF 2', row: 5 },
-  { id: 'DEF_3', position: 'DEF' as PlayerPosition, label: 'DEF 3', row: 5 },
-  { id: 'MID_1', position: 'MID' as PlayerPosition, label: 'MID 1', row: 4 },
-  { id: 'MID_2', position: 'MID' as PlayerPosition, label: 'MID 2', row: 4 },
-  { id: 'WING_1', position: 'WING' as PlayerPosition, label: 'WING 1', row: 3 },
-  { id: 'WING_2', position: 'WING' as PlayerPosition, label: 'WING 2', row: 3 },
-  { id: 'ST', position: 'ST' as PlayerPosition, label: 'ST', row: 2 },
+  { id: 'GK', position: 'GK' as PlayerPosition, label: 'GK', row: 1 },
+  { id: 'DEF_1', position: 'DEF' as PlayerPosition, label: 'DEF 1', row: 2 },
+  { id: 'DEF_2', position: 'DEF' as PlayerPosition, label: 'DEF 2', row: 2 },
+  { id: 'DEF_3', position: 'DEF' as PlayerPosition, label: 'DEF 3', row: 2 },
+  { id: 'MID_1', position: 'MID' as PlayerPosition, label: 'MID 1', row: 3 },
+  { id: 'MID_2', position: 'MID' as PlayerPosition, label: 'MID 2', row: 3 },
+  { id: 'WING_1', position: 'WING' as PlayerPosition, label: 'WING 1', row: 4 },
+  { id: 'WING_2', position: 'WING' as PlayerPosition, label: 'WING 2', row: 4 },
+  { id: 'ST', position: 'ST' as PlayerPosition, label: 'ST', row: 5 },
 ] as const;
 
 const POSITION_ORDER: Record<PlayerPosition, number> = {
@@ -32,86 +34,20 @@ const POSITION_ORDER: Record<PlayerPosition, number> = {
   'ST': 5,
 };
 
-const useStyles = makeStyles({
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px',
-  },
-  header: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: '8px',
-  },
-  teamInfo: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-  },
-  teamBadge: {
-    fontSize: tokens.fontSizeBase300,
-  },
-  formationGrid: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-    padding: '16px',
-    backgroundColor: tokens.colorNeutralBackground3,
-    borderRadius: tokens.borderRadiusMedium,
-    border: `2px solid ${tokens.colorNeutralStroke1}`,
-    maxWidth: '100%',
-    overflowX: 'auto',
-  },
-  formationRow: {
-    display: 'flex',
-    justifyContent: 'center',
-    gap: '8px',
-    flexWrap: 'wrap',
-  },
-  slotCard: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '4px',
-    padding: '8px',
-    width: '180px',
-    backgroundColor: tokens.colorNeutralBackground1,
-    borderRadius: tokens.borderRadiusSmall,
-    border: `1px solid ${tokens.colorNeutralStroke1}`,
-  },
-  slotLabel: {
-    fontSize: tokens.fontSizeBase200,
-    fontWeight: tokens.fontWeightSemibold,
-    color: tokens.colorNeutralForeground3,
-    textAlign: 'center',
-  },
-  slotDropdown: {
-    width: '100%',
-    minWidth: 0,
-  },
-  warningBadge: {
-    fontSize: '10px',
-    marginTop: '4px',
-  },
-  autoAssignButton: {
-    alignSelf: 'flex-start',
-  },
-});
-
-const getPositionColor = (position: PlayerPosition): 'success' | 'informative' | 'warning' | 'severe' | 'important' => {
+const getPositionBadgeColor = (position: PlayerPosition): string => {
   switch (position) {
     case 'GK':
-      return 'success';
+      return 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20';
     case 'DEF':
-      return 'informative';
+      return 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20';
     case 'MID':
-      return 'warning';
+      return 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20';
     case 'WING':
-      return 'severe';
+      return 'bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20';
     case 'ST':
-      return 'important';
+      return 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20';
     default:
-      return 'informative';
+      return 'bg-muted text-muted-foreground';
   }
 };
 
@@ -132,9 +68,14 @@ export function FormationSelector({
   excludePlayerIds,
   onFormationChange,
 }: FormationSelectorProps) {
-  const styles = useStyles();
+  const teamColor = team === 'yellow'
+    ? 'border-yellow-500/30'
+    : 'border-red-500/30';
 
-  const teamColor = team === 'yellow' ? '#FFD700' : '#DC143C';
+  const teamBadgeColor = team === 'yellow'
+    ? 'bg-yellow-500 text-black hover:bg-yellow-600'
+    : 'bg-red-500 text-white hover:bg-red-600';
+
   const teamName = team === 'yellow' ? 'Yellow Team' : 'Red Team';
 
   // Get assigned player IDs to exclude them from other dropdowns
@@ -143,18 +84,6 @@ export function FormationSelector({
   // Calculate completion
   const filledSlots = assignedPlayerIds.length;
   const totalSlots = FORMATION_SLOTS.length;
-
-  // Group slots by row for visual layout
-  const slotsByRow = useMemo(() => {
-    const rows: Record<number, typeof FORMATION_SLOTS> = {};
-    FORMATION_SLOTS.forEach(slot => {
-      if (!rows[slot.row]) {
-        rows[slot.row] = [];
-      }
-      rows[slot.row].push(slot);
-    });
-    return rows;
-  }, []);
 
   // Get available players for a specific slot
   const getAvailablePlayers = (currentSlotId: string) => {
@@ -213,94 +142,113 @@ export function FormationSelector({
     const availablePlayers = getAvailablePlayers(slot.id);
 
     return (
-      <div key={slot.id} className={styles.slotCard}>
-        <Text className={styles.slotLabel}>
-          {slot.label}{' '}
-          <Badge
-            appearance="filled"
-            color={getPositionColor(slot.position)}
-            size="small"
-          >
+      <div key={slot.id} className="w-32 space-y-1">
+        <Label htmlFor={`slot-${slot.id}`} className="text-xs flex items-center justify-center gap-1.5">
+          <span className="text-muted-foreground whitespace-nowrap">{slot.label}</span>
+          <Badge className={cn("text-[10px] px-1 py-0", getPositionBadgeColor(slot.position))}>
             {slot.position}
           </Badge>
-        </Text>
-        <Dropdown
-          placeholder="Select player"
-          value={player?.name || ''}
-          onOptionSelect={(_, data) => {
-            handleSlotChange(slot.id, data.optionValue === '' ? null : data.optionValue || null);
-          }}
-          size="small"
-          className={styles.slotDropdown}
-          positioning={{
-            position: 'below',
-            align: 'start',
-            autoSize: false,
-            flip: false,
-          }}
-          listbox={{ style: { maxHeight: '200px', overflowY: 'auto', width: '180px' } }}
+          {isOutOfPosition && (
+            <Badge variant="outline" className="text-[10px] px-1 py-0 text-amber-600">
+              OOP
+            </Badge>
+          )}
+        </Label>
+        <Select
+          value={playerId || '__NONE__'}
+          onValueChange={(value) => handleSlotChange(slot.id, value === '__NONE__' ? null : value)}
         >
-          <Option value="">Clear</Option>
-          {availablePlayers.map(p => (
-            <Option key={p.id} value={p.id}>
-              {p.name}{' '}
-              <Badge
-                appearance="filled"
-                color={getPositionColor(p.position)}
-                size="small"
-              >
-                {p.position}
-              </Badge>
-            </Option>
-          ))}
-        </Dropdown>
-        {isOutOfPosition && (
-          <Badge
-            appearance="filled"
-            color="warning"
-            className={styles.warningBadge}
-          >
-            Out of position
-          </Badge>
-        )}
+          <SelectTrigger id={`slot-${slot.id}`} className="h-8 text-xs w-full">
+            <SelectValue placeholder="Select" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__NONE__">Clear</SelectItem>
+            {availablePlayers.map(p => (
+              <SelectItem key={p.id} value={p.id}>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs">{p.name}</span>
+                  <Badge className={cn("text-[10px] px-1 py-0", getPositionBadgeColor(p.position))}>
+                    {p.position}
+                  </Badge>
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
     );
   };
 
-  return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <div className={styles.teamInfo}>
-          <Badge
-            appearance="filled"
-            style={{ backgroundColor: teamColor }}
-            className={styles.teamBadge}
-          >
-            {teamName}
-          </Badge>
-          <Text size={200}>
-            {filledSlots} / {totalSlots} players
-          </Text>
-        </div>
-        <Button
-          appearance="subtle"
-          icon={<Checkmark24Regular />}
-          onClick={handleAutoAssign}
-          size="small"
-          className={styles.autoAssignButton}
-        >
-          Auto-assign
-        </Button>
-      </div>
+  // Group slots by row
+  const slotsByRow: Record<number, typeof FORMATION_SLOTS> = {};
+  FORMATION_SLOTS.forEach(slot => {
+    if (!slotsByRow[slot.row]) {
+      slotsByRow[slot.row] = [];
+    }
+    slotsByRow[slot.row].push(slot);
+  });
 
-      <div className={styles.formationGrid}>
-        {/* Render rows from top to bottom (GK to ST) */}
-        {[6, 5, 4, 3, 2].map(rowNumber => (
-          <div key={rowNumber} className={styles.formationRow}>
-            {slotsByRow[rowNumber]?.map(slot => renderSlot(slot))}
+  return (
+    <Card className={cn("border", teamColor)}>
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Badge className={teamBadgeColor}>
+              {teamName}
+            </Badge>
+            <span className="text-xs text-muted-foreground">
+              {filledSlots}/{totalSlots}
+            </span>
           </div>
-        ))}
-      </div>
-    </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleAutoAssign}
+            className="gap-1.5 h-7 text-xs"
+          >
+            <Sparkles className="h-3 w-3" />
+            Auto
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="pb-3 pt-3">
+        <div className="space-y-3">
+          {/* GK Row - centered */}
+          {slotsByRow[1] && (
+            <div className="flex justify-center gap-2">
+              {slotsByRow[1].map(slot => renderSlot(slot))}
+            </div>
+          )}
+
+          {/* DEF Row - spread across */}
+          {slotsByRow[2] && (
+            <div className="flex justify-between gap-2 px-4">
+              {slotsByRow[2].map(slot => renderSlot(slot))}
+            </div>
+          )}
+
+          {/* MID Row - centered together */}
+          {slotsByRow[3] && (
+            <div className="flex justify-center gap-2">
+              {slotsByRow[3].map(slot => renderSlot(slot))}
+            </div>
+          )}
+
+          {/* WING Row - left and right */}
+          {slotsByRow[4] && (
+            <div className="flex justify-between gap-2">
+              {slotsByRow[4].map(slot => renderSlot(slot))}
+            </div>
+          )}
+
+          {/* ST Row - centered */}
+          {slotsByRow[5] && (
+            <div className="flex justify-center gap-2">
+              {slotsByRow[5].map(slot => renderSlot(slot))}
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

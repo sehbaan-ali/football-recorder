@@ -1,29 +1,24 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import {
   Dialog,
-  DialogTrigger,
-  DialogSurface,
-  DialogTitle,
-  DialogBody,
-  DialogActions,
   DialogContent,
-  Button,
-  Input,
-  Label,
-  Dropdown,
-  Option,
-  makeStyles,
-} from '@fluentui/react-components';
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import type { PlayerPosition } from '../../types';
-
-const useStyles = makeStyles({
-  field: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-    marginBottom: '16px',
-  },
-});
 
 const POSITIONS = [
   { value: 'GK', label: 'Goalkeeper' },
@@ -52,7 +47,6 @@ export function PlayerForm({
   open: controlledOpen,
   onOpenChange: controlledOnOpenChange
 }: PlayerFormProps) {
-  const styles = useStyles();
   const [internalOpen, setInternalOpen] = useState(false);
   const [name, setName] = useState(initialName);
   const [position, setPosition] = useState<PlayerPosition>(initialPosition);
@@ -83,70 +77,69 @@ export function PlayerForm({
     }
   };
 
-  const handleOpenChange = (_: unknown, data: { open: boolean }) => {
+  const handleOpenChange = (open: boolean) => {
     if (isControlled && controlledOnOpenChange) {
-      controlledOnOpenChange(data.open);
+      controlledOnOpenChange(open);
     } else {
-      setInternalOpen(data.open);
+      setInternalOpen(open);
     }
   };
 
   const dialogContent = (
-    <DialogSurface>
+    <DialogContent className="sm:max-w-[425px]">
       <form onSubmit={handleSubmit}>
-        <DialogBody>
+        <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          <DialogContent>
-            <div className={styles.field}>
-              <Label htmlFor="player-name" required>
-                Player Name
-              </Label>
-              <Input
-                id="player-name"
-                value={name}
-                onChange={(_, data) => setName(data.value)}
-                placeholder="Enter player name"
-                required
-                autoFocus
-              />
-            </div>
-            <div className={styles.field}>
-              <Label htmlFor="player-position" required>
-                Position
-              </Label>
-              <Dropdown
-                id="player-position"
-                placeholder="Select position"
-                value={POSITIONS.find(p => p.value === position)?.label}
-                selectedOptions={[position]}
-                onOptionSelect={(_, data) => setPosition(data.optionValue as PlayerPosition)}
-                required
-              >
+          <DialogDescription>
+            {initialName ? 'Update player information' : 'Add a new player to your roster'}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="player-name">
+              Player Name <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="player-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter player name"
+              required
+              autoFocus
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="player-position">
+              Position <span className="text-destructive">*</span>
+            </Label>
+            <Select value={position} onValueChange={(value) => setPosition(value as PlayerPosition)}>
+              <SelectTrigger id="player-position">
+                <SelectValue placeholder="Select position" />
+              </SelectTrigger>
+              <SelectContent>
                 {POSITIONS.map((pos) => (
-                  <Option key={pos.value} value={pos.value}>
+                  <SelectItem key={pos.value} value={pos.value}>
                     {pos.label}
-                  </Option>
+                  </SelectItem>
                 ))}
-              </Dropdown>
-            </div>
-          </DialogContent>
-          <DialogActions>
-            <Button appearance="secondary" onClick={() => {
-              if (isControlled && controlledOnOpenChange) {
-                controlledOnOpenChange(false);
-              } else {
-                setInternalOpen(false);
-              }
-            }}>
-              Cancel
-            </Button>
-            <Button type="submit" appearance="primary" disabled={!name.trim() || !position}>
-              {initialName ? 'Save Changes' : 'Add Player'}
-            </Button>
-          </DialogActions>
-        </DialogBody>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => handleOpenChange(false)}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" disabled={!name.trim() || !position}>
+            {initialName ? 'Save Changes' : 'Add Player'}
+          </Button>
+        </DialogFooter>
       </form>
-    </DialogSurface>
+    </DialogContent>
   );
 
   // Controlled mode (no trigger needed)
@@ -165,7 +158,7 @@ export function PlayerForm({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger disableButtonEnhancement>
+      <DialogTrigger asChild>
         {trigger}
       </DialogTrigger>
       {dialogContent}

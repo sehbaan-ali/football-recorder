@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { Button, Tooltip } from '@fluentui/react-components';
-import { AddCircle24Regular } from '@fluentui/react-icons';
-import { PageHeader } from '../components/layout/PageHeader';
+import { Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { PlayerForm } from '../components/player/PlayerForm';
 import { PlayerTable } from '../components/player/PlayerTable';
 import { usePlayers } from '../hooks/usePlayers';
@@ -94,44 +93,40 @@ export function Players() {
   const archivedCount = players.filter(p => p.archived).length;
 
   return (
-    <div>
-      <PageHeader
-        title="Players"
-        subtitle="Manage your football players"
-        actions={
-          <Tooltip
-            content={isAdmin ? "Add a new player" : "Login required to add players"}
-            relationship="description"
-          >
-            <PlayerForm
-              onSubmit={handleAddPlayer}
-              trigger={
-                <Button
-                  appearance="primary"
-                  icon={<AddCircle24Regular />}
-                  disabled={!isAdmin}
-                >
-                  Add Player
-                </Button>
-              }
-            />
-          </Tooltip>
-        }
-      />
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Players</h1>
+          <p className="text-muted-foreground">Manage your football players</p>
+        </div>
+        <PlayerForm
+          onSubmit={handleAddPlayer}
+          trigger={
+            <Button disabled={!isAdmin}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Player
+            </Button>
+          }
+        />
+      </div>
 
       {loading ? (
-        <div>Loading...</div>
+        <div className="flex items-center justify-center h-64">
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
       ) : (
         <>
-          <div style={{ marginBottom: '16px', display: 'flex', gap: '8px', alignItems: 'center' }}>
+          {/* Tabs */}
+          <div className="flex gap-2">
             <Button
-              appearance={!showArchived ? 'primary' : 'subtle'}
+              variant={!showArchived ? 'default' : 'outline'}
               onClick={() => setShowArchived(false)}
             >
               Active Players
             </Button>
             <Button
-              appearance={showArchived ? 'primary' : 'subtle'}
+              variant={showArchived ? 'default' : 'outline'}
               onClick={() => setShowArchived(true)}
             >
               Archived ({archivedCount})

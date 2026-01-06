@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { PageHeader } from '../components/layout/PageHeader';
 import { LeaderboardTable } from '../components/leaderboard/LeaderboardTable';
 import { StatFilters } from '../components/leaderboard/StatFilters';
 import { usePlayers } from '../hooks/usePlayers';
@@ -18,19 +17,22 @@ export function Leaderboard() {
   const loading = playersLoading || matchesLoading;
 
   return (
-    <div>
-      <PageHeader
-        title="Leaderboard"
-        subtitle="Player rankings and statistics"
-      />
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Leaderboard</h1>
+        <p className="text-muted-foreground">Player rankings and statistics</p>
+      </div>
 
       {loading ? (
-        <div>Loading...</div>
+        <div className="flex items-center justify-center h-64">
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
       ) : (
-        <>
+        <div className="space-y-4">
           <StatFilters selectedSort={sortBy} onSortChange={setSortBy} />
           <LeaderboardTable stats={sortedStats} />
-        </>
+        </div>
       )}
     </div>
   );

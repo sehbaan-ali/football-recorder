@@ -6,7 +6,14 @@
       "Bash(npx kill-port:*)",
       "Bash(timeout:*)",
       "Bash(npm test:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(npx tailwindcss:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(copy \"@\\\\components\\\\ui\\\\dialog.tsx\" \"src\\\\components\\\\ui\\\\dialog.tsx\")",
+      "Bash(copy \"@\\\\components\\\\ui\\\\select.tsx\" \"src\\\\components\\\\ui\\\\select.tsx\")",
+      "Bash(npx shadcn@latest add:*)",
+      "Bash(copy \"@\\\\components\\\\ui\\\\tabs.tsx\" \"src\\\\components\\\\ui\\\\tabs.tsx\")",
+      "Bash(ls:*)"
     ]
   }
 }

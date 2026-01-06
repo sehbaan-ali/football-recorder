@@ -31,20 +31,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Fetch user profile (including role)
   const fetchProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase
+      console.log('Fetching profile for user ID:', userId);
+
+      const fetchPromise = supabase
         .from('user_profiles')
         .select('*')
         .eq('id', userId)
         .single();
 
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
+      );
+
+      const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
+
       if (error) {
-        console.error('Error fetching profile:', error);
+        console.error('Error fetching profile - Details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
         return null;
       }
 
+      console.log('Profile fetched successfully:', data);
       return data as UserProfile;
     } catch (err) {
-      console.error('Error fetching profile:', err);
+      console.error('Exception fetching profile:', err);
       return null;
     }
   };
@@ -67,12 +81,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      console.log('Auth state changed:', _event);
       setSession(session);
       setUser(session?.user ?? null);
 
       if (session?.user) {
-        const userProfile = await fetchProfile(session.user.id);
-        setProfile(userProfile);
+        // Don't await - fetch in background to prevent blocking
+        fetchProfile(session.user.id).then(profile => {
+          console.log('Setting profile from auth change:', profile);
+          setProfile(profile);
+        });
       } else {
         setProfile(null);
       }
@@ -114,6 +132,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin';
   const isSuperAdmin = profile?.role === 'super_admin';
+
+  console.log('Auth State:', {
+    userId: user?.id,
+    profileRole: profile?.role,
+    isAdmin,
+    isSuperAdmin
+  });
 
   const value = {
     user,

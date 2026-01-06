@@ -1,72 +1,25 @@
 import { useState } from 'react';
+import { Trophy, Undo2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import {
-  Button,
-  Card,
   Dialog,
-  DialogSurface,
-  DialogTitle,
-  DialogBody,
-  DialogActions,
   DialogContent,
-  Dropdown,
-  Option,
-  Label,
-  makeStyles,
-  tokens,
-  Text,
-} from '@fluentui/react-components';
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
-  SportSoccer24Regular,
-  ArrowUndo24Regular,
-} from '@fluentui/react-icons';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import type { Player, TeamColor } from '../../types';
-
-const useStyles = makeStyles({
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '24px',
-  },
-  scoreBoard: {
-    display: 'grid',
-    gridTemplateColumns: '1fr auto 1fr',
-    alignItems: 'center',
-    gap: '32px',
-    padding: '24px',
-    backgroundColor: tokens.colorNeutralBackground2,
-    borderRadius: tokens.borderRadiusLarge,
-  },
-  score: {
-    fontSize: '48px',
-    fontWeight: tokens.fontWeightBold,
-    marginTop: '8px',
-  },
-  teams: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '24px',
-  },
-  team: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '12px',
-  },
-  teamHeader: {
-    fontSize: tokens.fontSizeBase400,
-    fontWeight: tokens.fontWeightSemibold,
-    padding: '8px 12px',
-    borderRadius: tokens.borderRadiusLarge,
-    textAlign: 'center',
-  },
-  actions: {
-    display: 'flex',
-    gap: '8px',
-    flexWrap: 'wrap',
-  },
-  field: {
-    marginBottom: '16px',
-  },
-});
+import { cn } from '@/lib/utils';
 
 interface LiveMatchRecorderProps {
   yellowPlayers: Player[];
@@ -89,7 +42,6 @@ export function LiveMatchRecorder({
   onUndo,
   canUndo,
 }: LiveMatchRecorderProps) {
-  const styles = useStyles();
   const [goalDialogOpen, setGoalDialogOpen] = useState(false);
   const [ownGoalDialogOpen, setOwnGoalDialogOpen] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<TeamColor>('yellow');
@@ -127,189 +79,221 @@ export function LiveMatchRecorder({
   const openOwnGoalDialog = (team: TeamColor) => {
     setSelectedTeam(team);
     setSelectedScorer('');
-    setOwnGoalDialogOpen(false);
     setOwnGoalDialogOpen(true);
   };
 
   const currentTeamPlayers = selectedTeam === 'yellow' ? yellowPlayers : redPlayers;
+  const dialogTeamName = selectedTeam === 'yellow' ? 'Yellow' : 'Red';
 
   return (
-    <div className={styles.container}>
+    <div className="space-y-6">
+      {/* Scoreboard */}
       <Card>
-        <div className={styles.scoreBoard}>
-          <div style={{ textAlign: 'center' }}>
-            <Text weight="semibold">Yellow</Text>
-            <div className={styles.score} style={{ color: '#FFD700' }}>
-              {yellowScore}
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-3 items-center gap-8">
+            {/* Yellow Team */}
+            <div className="text-center space-y-2">
+              <div className="text-sm font-medium text-muted-foreground">Yellow</div>
+              <div className="text-6xl font-bold text-yellow-500">
+                {yellowScore}
+              </div>
+            </div>
+
+            {/* Separator */}
+            <div className="text-center">
+              <div className="text-3xl font-semibold text-muted-foreground">-</div>
+            </div>
+
+            {/* Red Team */}
+            <div className="text-center space-y-2">
+              <div className="text-sm font-medium text-muted-foreground">Red</div>
+              <div className="text-6xl font-bold text-red-500">
+                {redScore}
+              </div>
             </div>
           </div>
-          <Text size={600}>-</Text>
-          <div style={{ textAlign: 'center' }}>
-            <Text weight="semibold">Red</Text>
-            <div className={styles.score} style={{ color: '#DC143C' }}>
-              {redScore}
-            </div>
-          </div>
-        </div>
+        </CardContent>
       </Card>
 
-      <div className={styles.teams}>
-        <div className={styles.team}>
-          <div
-            className={styles.teamHeader}
-            style={{ backgroundColor: '#FFD700', color: '#000' }}
-          >
-            Yellow Team
-          </div>
-          <div className={styles.actions}>
+      {/* Team Controls */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Yellow Team */}
+        <Card className="border-2 bg-yellow-500/5 border-yellow-500/30">
+          <CardContent className="pt-6 space-y-3">
+            <div className="text-center mb-4">
+              <h3 className="text-lg font-semibold">Yellow Team</h3>
+            </div>
             <Button
-              appearance="primary"
-              icon={<SportSoccer24Regular />}
+              className="w-full bg-yellow-500 hover:bg-yellow-600 text-black"
               onClick={() => openGoalDialog('yellow')}
             >
+              <Trophy className="h-4 w-4 mr-2" />
               Add Goal
             </Button>
             <Button
-              appearance="secondary"
+              variant="outline"
+              className="w-full border-yellow-500/50 hover:bg-yellow-500/10"
               onClick={() => openOwnGoalDialog('yellow')}
             >
               Own Goal
             </Button>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className={styles.team}>
-          <div
-            className={styles.teamHeader}
-            style={{ backgroundColor: '#DC143C', color: '#fff' }}
-          >
-            Red Team
-          </div>
-          <div className={styles.actions}>
+        {/* Red Team */}
+        <Card className="border-2 bg-red-500/5 border-red-500/30">
+          <CardContent className="pt-6 space-y-3">
+            <div className="text-center mb-4">
+              <h3 className="text-lg font-semibold">Red Team</h3>
+            </div>
             <Button
-              appearance="primary"
-              icon={<SportSoccer24Regular />}
+              className="w-full bg-red-500 hover:bg-red-600 text-white"
               onClick={() => openGoalDialog('red')}
             >
+              <Trophy className="h-4 w-4 mr-2" />
               Add Goal
             </Button>
             <Button
-              appearance="secondary"
+              variant="outline"
+              className="w-full border-red-500/50 hover:bg-red-500/10"
               onClick={() => openOwnGoalDialog('red')}
             >
               Own Goal
             </Button>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
 
-      <div>
-        <Button
-          icon={<ArrowUndo24Regular />}
-          onClick={onUndo}
-          disabled={!canUndo}
-        >
-          Undo Last Event
-        </Button>
-      </div>
+      {/* Undo Button */}
+      <Button
+        variant="outline"
+        onClick={onUndo}
+        disabled={!canUndo}
+        className="gap-2"
+      >
+        <Undo2 className="h-4 w-4" />
+        Undo Last Event
+      </Button>
 
       {/* Goal Dialog */}
-      <Dialog open={goalDialogOpen} onOpenChange={(_, data) => setGoalDialogOpen(data.open)}>
-        <DialogSurface>
-          <DialogBody>
-            <DialogTitle>Add Goal</DialogTitle>
-            <DialogContent>
-              <div className={styles.field}>
-                <Label htmlFor="scorer" required>
-                  Scorer
-                </Label>
-                <Dropdown
-                  id="scorer"
-                  placeholder="Select scorer"
-                  value={currentTeamPlayers.find(p => p.id === selectedScorer)?.name || ''}
-                  onOptionSelect={(_, data) => setSelectedScorer(data.optionValue || '')}
-                >
+      <Dialog open={goalDialogOpen} onOpenChange={setGoalDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Goal - {dialogTeamName} Team</DialogTitle>
+            <DialogDescription>
+              Record a goal for the {dialogTeamName.toLowerCase()} team
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="scorer">
+                Scorer <span className="text-destructive">*</span>
+              </Label>
+              <Select value={selectedScorer} onValueChange={setSelectedScorer}>
+                <SelectTrigger id="scorer">
+                  <SelectValue placeholder="Select scorer" />
+                </SelectTrigger>
+                <SelectContent>
                   {currentTeamPlayers.map(player => (
-                    <Option key={player.id} value={player.id}>
+                    <SelectItem key={player.id} value={player.id}>
                       {player.name}
-                    </Option>
+                    </SelectItem>
                   ))}
-                </Dropdown>
-              </div>
+                </SelectContent>
+              </Select>
+            </div>
 
-              <div className={styles.field}>
-                <Label htmlFor="assist">Assist (optional)</Label>
-                <Dropdown
-                  id="assist"
-                  placeholder="Select assist provider"
-                  value={currentTeamPlayers.find(p => p.id === selectedAssist)?.name || ''}
-                  onOptionSelect={(_, data) => setSelectedAssist(data.optionValue || '')}
-                >
-                  <Option value="">No assist</Option>
+            <div className="space-y-2">
+              <Label htmlFor="assist">Assist (optional)</Label>
+              <Select value={selectedAssist || '__NONE__'} onValueChange={(value) => setSelectedAssist(value === '__NONE__' ? '' : value)}>
+                <SelectTrigger id="assist">
+                  <SelectValue placeholder="Select assist provider" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__NONE__">No assist</SelectItem>
                   {currentTeamPlayers
                     .filter(p => p.id !== selectedScorer)
                     .map(player => (
-                      <Option key={player.id} value={player.id}>
+                      <SelectItem key={player.id} value={player.id}>
                         {player.name}
-                      </Option>
+                      </SelectItem>
                     ))}
-                </Dropdown>
-              </div>
-            </DialogContent>
-            <DialogActions>
-              <Button appearance="secondary" onClick={() => setGoalDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button
-                appearance="primary"
-                onClick={handleAddGoal}
-                disabled={!selectedScorer}
-              >
-                Add Goal
-              </Button>
-            </DialogActions>
-          </DialogBody>
-        </DialogSurface>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setGoalDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleAddGoal}
+              disabled={!selectedScorer}
+              className={cn(
+                selectedTeam === 'yellow'
+                  ? 'bg-yellow-500 hover:bg-yellow-600 text-black'
+                  : 'bg-red-500 hover:bg-red-600 text-white'
+              )}
+            >
+              Add Goal
+            </Button>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
 
       {/* Own Goal Dialog */}
-      <Dialog open={ownGoalDialogOpen} onOpenChange={(_, data) => setOwnGoalDialogOpen(data.open)}>
-        <DialogSurface>
-          <DialogBody>
-            <DialogTitle>Add Own Goal</DialogTitle>
-            <DialogContent>
-              <div className={styles.field}>
-                <Label htmlFor="own-goal-player" required>
-                  Player who scored own goal
-                </Label>
-                <Dropdown
-                  id="own-goal-player"
-                  placeholder="Select player"
-                  value={currentTeamPlayers.find(p => p.id === selectedScorer)?.name || ''}
-                  onOptionSelect={(_, data) => setSelectedScorer(data.optionValue || '')}
-                >
+      <Dialog open={ownGoalDialogOpen} onOpenChange={setOwnGoalDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Own Goal - {dialogTeamName} Team</DialogTitle>
+            <DialogDescription>
+              Record an own goal scored by a {dialogTeamName.toLowerCase()} team player
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="own-goal-player">
+                Player who scored own goal <span className="text-destructive">*</span>
+              </Label>
+              <Select value={selectedScorer} onValueChange={setSelectedScorer}>
+                <SelectTrigger id="own-goal-player">
+                  <SelectValue placeholder="Select player" />
+                </SelectTrigger>
+                <SelectContent>
                   {currentTeamPlayers.map(player => (
-                    <Option key={player.id} value={player.id}>
+                    <SelectItem key={player.id} value={player.id}>
                       {player.name}
-                    </Option>
+                    </SelectItem>
                   ))}
-                </Dropdown>
-              </div>
-            </DialogContent>
-            <DialogActions>
-              <Button appearance="secondary" onClick={() => setOwnGoalDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button
-                appearance="primary"
-                onClick={handleAddOwnGoal}
-                disabled={!selectedScorer}
-              >
-                Add Own Goal
-              </Button>
-            </DialogActions>
-          </DialogBody>
-        </DialogSurface>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOwnGoalDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleAddOwnGoal}
+              disabled={!selectedScorer}
+              className={cn(
+                selectedTeam === 'yellow'
+                  ? 'bg-yellow-500 hover:bg-yellow-600 text-black'
+                  : 'bg-red-500 hover:bg-red-600 text-white'
+              )}
+            >
+              Add Own Goal
+            </Button>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
     </div>
   );

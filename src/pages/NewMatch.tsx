@@ -1,15 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-  Button,
-  Input,
-  Label,
-  makeStyles,
-  tokens,
-  Text,
-  Card,
-} from '@fluentui/react-components';
-import { PageHeader } from '../components/layout/PageHeader';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
 import { FormationSelector, type FormationAssignment } from '../components/match/FormationSelector';
 import { LiveMatchRecorder } from '../components/match/LiveMatchRecorder';
 import { MatchEventList } from '../components/match/MatchEventList';
@@ -18,49 +12,11 @@ import { useMatches } from '../hooks/useMatches';
 import { useAuth } from '../contexts/AuthContext';
 import type { TeamColor, MatchEvent } from '../types';
 
-const useStyles = makeStyles({
-  container: {
-    maxWidth: '1400px',
-    margin: '0 auto',
-    padding: '0 16px',
-  },
-  step: {
-    marginBottom: '32px',
-  },
-  field: {
-    marginBottom: '16px',
-  },
-  teams: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '24px',
-    marginTop: '16px',
-  },
-  actions: {
-    display: 'flex',
-    gap: '12px',
-    marginTop: '24px',
-  },
-  section: {
-    marginBottom: '24px',
-  },
-  sectionTitle: {
-    fontSize: tokens.fontSizeBase400,
-    fontWeight: tokens.fontWeightSemibold,
-    marginBottom: '12px',
-  },
-  unauthorized: {
-    textAlign: 'center',
-    padding: '48px 24px',
-    marginTop: '32px',
-  },
-});
-
 type Step = 'setup' | 'recording' | 'finalized';
 
 export function NewMatch() {
-  const styles = useStyles();
   const navigate = useNavigate();
+  const location = useLocation();
   const { players } = usePlayers();
   const { createMatch, updateMatch } = useMatches();
   const { isAdmin } = useAuth();
@@ -252,32 +208,26 @@ export function NewMatch() {
   // Check admin access
   if (!isAdmin) {
     return (
-      <div className={styles.container}>
-        <PageHeader
-          title="New Match"
-          subtitle="Record a new football match"
-        />
-        <Card className={styles.unauthorized}>
-          <Text size={500} weight="semibold" style={{ marginBottom: '12px', display: 'block' }}>
-            Login Required
-          </Text>
-          <Text style={{ marginBottom: '24px', display: 'block' }}>
-            You need to be logged in to record matches.
-          </Text>
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-            <Button
-              appearance="primary"
-              onClick={() => navigate('/login')}
-            >
-              Login
-            </Button>
-            <Button
-              appearance="secondary"
-              onClick={() => navigate('/')}
-            >
-              Go to Dashboard
-            </Button>
-          </div>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">New Match</h1>
+          <p className="text-muted-foreground">Record a new football match</p>
+        </div>
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-16">
+            <h2 className="text-xl font-semibold mb-2">Login Required</h2>
+            <p className="text-muted-foreground mb-6 text-center">
+              You need to be logged in to record matches.
+            </p>
+            <div className="flex gap-3">
+              <Button onClick={() => navigate('/login', { state: { from: location } })}>
+                Login
+              </Button>
+              <Button variant="outline" onClick={() => navigate('/')}>
+                Go to Dashboard
+              </Button>
+            </div>
+          </CardContent>
         </Card>
       </div>
     );
@@ -285,98 +235,105 @@ export function NewMatch() {
 
   if (players.length < 18) {
     return (
-      <div className={styles.container}>
-        <PageHeader
-          title="New Match"
-          subtitle="Record a new football match"
-        />
-        <Text>
-          You need at least 18 players to start a match (9 per team).
-          Please add more players first.
-        </Text>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">New Match</h1>
+          <p className="text-muted-foreground">Record a new football match</p>
+        </div>
+        <Card>
+          <CardContent className="py-8">
+            <p className="text-muted-foreground">
+              You need at least 18 players to start a match (9 per team).
+              Please add more players first.
+            </p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className={styles.container}>
-      <PageHeader
-        title="New Match"
-        subtitle={
-          step === 'setup'
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">New Match</h1>
+        <p className="text-muted-foreground">
+          {step === 'setup'
             ? 'Select teams to start'
-            : 'Record match events in real-time'
-        }
-      />
+            : 'Record match events in real-time'}
+        </p>
+      </div>
 
       {step === 'setup' && (
-        <div>
-          <div className={styles.step}>
-            <div className={styles.field}>
-              <Label htmlFor="match-date">Match Date</Label>
-              <Input
-                id="match-date"
-                type="date"
-                value={date}
-                onChange={(_, data) => setDate(data.value)}
-              />
-            </div>
-
-            <div className={styles.teams}>
-              <FormationSelector
-                team="yellow"
-                players={players.filter(p => !p.archived)}
-                formation={yellowFormation}
-                excludePlayerIds={redPlayerIds}
-                onFormationChange={setYellowFormation}
-              />
-              <FormationSelector
-                team="red"
-                players={players.filter(p => !p.archived)}
-                formation={redFormation}
-                excludePlayerIds={yellowPlayerIds}
-                onFormationChange={setRedFormation}
-              />
-            </div>
+        <div className="space-y-6">
+          {/* Date Field */}
+          <div className="space-y-2">
+            <Label htmlFor="match-date">Match Date</Label>
+            <Input
+              id="match-date"
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="max-w-xs"
+            />
           </div>
 
-          <div className={styles.actions}>
-            <Button
-              appearance="primary"
-              onClick={handleStartMatch}
-              disabled={!canStartMatch}
-            >
-              Start Match
-            </Button>
+          {/* Team Selection */}
+          <div className="space-y-6">
+            <FormationSelector
+              team="yellow"
+              players={players.filter(p => !p.archived)}
+              formation={yellowFormation}
+              excludePlayerIds={redPlayerIds}
+              onFormationChange={setYellowFormation}
+            />
+            <FormationSelector
+              team="red"
+              players={players.filter(p => !p.archived)}
+              formation={redFormation}
+              excludePlayerIds={yellowPlayerIds}
+              onFormationChange={setRedFormation}
+            />
           </div>
+
+          {/* Actions */}
+          <Button
+            onClick={handleStartMatch}
+            disabled={!canStartMatch}
+            size="lg"
+            className="-mt-2"
+          >
+            Start Match
+          </Button>
         </div>
       )}
 
       {step === 'recording' && (
-        <div>
-          <div className={styles.section}>
-            <LiveMatchRecorder
-              yellowPlayers={yellowPlayers}
-              redPlayers={redPlayers}
-              yellowScore={yellowScore}
-              redScore={redScore}
-              onAddGoal={handleAddGoal}
-              onAddOwnGoal={handleAddOwnGoal}
-              onUndo={handleUndo}
-              canUndo={events.length > 0}
-            />
-          </div>
+        <div className="space-y-6">
+          {/* Live Recorder */}
+          <LiveMatchRecorder
+            yellowPlayers={yellowPlayers}
+            redPlayers={redPlayers}
+            yellowScore={yellowScore}
+            redScore={redScore}
+            onAddGoal={handleAddGoal}
+            onAddOwnGoal={handleAddOwnGoal}
+            onUndo={handleUndo}
+            canUndo={events.length > 0}
+          />
 
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>Match Events</div>
+          {/* Match Events */}
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold">Match Events</h2>
             <MatchEventList events={events} players={players} />
           </div>
 
-          <div className={styles.actions}>
-            <Button appearance="primary" onClick={handleSaveMatch}>
+          {/* Actions */}
+          <div className="flex gap-3">
+            <Button onClick={handleSaveMatch} size="lg">
               Save Match
             </Button>
-            <Button appearance="secondary" onClick={handleDiscardMatch}>
+            <Button variant="outline" onClick={handleDiscardMatch} size="lg">
               Discard Match
             </Button>
           </div>
