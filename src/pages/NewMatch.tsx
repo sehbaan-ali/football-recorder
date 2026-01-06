@@ -7,6 +7,7 @@ import {
   makeStyles,
   tokens,
   Text,
+  Card,
 } from '@fluentui/react-components';
 import { PageHeader } from '../components/layout/PageHeader';
 import { FormationSelector, type FormationAssignment } from '../components/match/FormationSelector';
@@ -14,6 +15,7 @@ import { LiveMatchRecorder } from '../components/match/LiveMatchRecorder';
 import { MatchEventList } from '../components/match/MatchEventList';
 import { usePlayers } from '../hooks/usePlayers';
 import { useMatches } from '../hooks/useMatches';
+import { useAuth } from '../contexts/AuthContext';
 import type { TeamColor, MatchEvent } from '../types';
 
 const useStyles = makeStyles({
@@ -47,6 +49,11 @@ const useStyles = makeStyles({
     fontWeight: tokens.fontWeightSemibold,
     marginBottom: '12px',
   },
+  unauthorized: {
+    textAlign: 'center',
+    padding: '48px 24px',
+    marginTop: '32px',
+  },
 });
 
 type Step = 'setup' | 'recording' | 'finalized';
@@ -56,6 +63,7 @@ export function NewMatch() {
   const navigate = useNavigate();
   const { players } = usePlayers();
   const { createMatch, updateMatch } = useMatches();
+  const { isAdmin } = useAuth();
 
   const [step, setStep] = useState<Step>('setup');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -240,6 +248,40 @@ export function NewMatch() {
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasUnsavedChanges]);
+
+  // Check admin access
+  if (!isAdmin) {
+    return (
+      <div className={styles.container}>
+        <PageHeader
+          title="New Match"
+          subtitle="Record a new football match"
+        />
+        <Card className={styles.unauthorized}>
+          <Text size={500} weight="semibold" style={{ marginBottom: '12px', display: 'block' }}>
+            Login Required
+          </Text>
+          <Text style={{ marginBottom: '24px', display: 'block' }}>
+            You need to be logged in to record matches.
+          </Text>
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+            <Button
+              appearance="primary"
+              onClick={() => navigate('/login')}
+            >
+              Login
+            </Button>
+            <Button
+              appearance="secondary"
+              onClick={() => navigate('/')}
+            >
+              Go to Dashboard
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   if (players.length < 18) {
     return (

@@ -6,6 +6,7 @@ import {
   Text,
   makeStyles,
   tokens,
+  Tooltip,
 } from '@fluentui/react-components';
 import { AddCircle24Regular, Trophy24Filled } from '@fluentui/react-icons';
 import { PageHeader } from '../components/layout/PageHeader';
@@ -15,6 +16,7 @@ import { usePlayers } from '../hooks/usePlayers';
 import { useMatches } from '../hooks/useMatches';
 import { useStats } from '../hooks/useStats';
 import { StatsService } from '../services/stats';
+import { useAuth } from '../contexts/AuthContext';
 import type { Match } from '../types';
 
 const useStyles = makeStyles({
@@ -74,6 +76,7 @@ const useStyles = makeStyles({
 export function Dashboard() {
   const styles = useStyles();
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
   const { players, loading: playersLoading } = usePlayers();
   const { matches, deleteMatch, loading: matchesLoading } = useMatches();
   const { playerStats } = useStats(players, matches);
@@ -120,13 +123,19 @@ export function Dashboard() {
         title="Dashboard"
         subtitle="Overview of your football matches"
         actions={
-          <Button
-            appearance="primary"
-            icon={<AddCircle24Regular />}
-            onClick={() => navigate('/match/new')}
+          <Tooltip
+            content={isAdmin ? "Record a new match" : "Login required to record matches"}
+            relationship="description"
           >
-            Record New Match
-          </Button>
+            <Button
+              appearance="primary"
+              icon={<AddCircle24Regular />}
+              onClick={() => navigate('/match/new')}
+              disabled={!isAdmin}
+            >
+              Record New Match
+            </Button>
+          </Tooltip>
         }
       />
 

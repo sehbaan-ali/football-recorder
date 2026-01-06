@@ -7,6 +7,7 @@ import {
   TableCell,
   Button,
   Badge,
+  Tooltip,
   makeStyles,
   tokens,
   Text,
@@ -60,9 +61,10 @@ interface PlayerTableProps {
   onDeletePlayer: (playerId: string, playerName: string, hasMatches: boolean) => void;
   onUnarchivePlayer: (playerId: string) => void;
   showArchived: boolean;
+  isAdmin: boolean;
 }
 
-export function PlayerTable({ players, playerStats, onEditPlayer, onDeletePlayer, onUnarchivePlayer, showArchived }: PlayerTableProps) {
+export function PlayerTable({ players, playerStats, onEditPlayer, onDeletePlayer, onUnarchivePlayer, showArchived, isAdmin }: PlayerTableProps) {
   const styles = useStyles();
 
   if (players.length === 0) {
@@ -123,34 +125,49 @@ export function PlayerTable({ players, playerStats, onEditPlayer, onDeletePlayer
                 <div className={styles.actions}>
                   {showArchived ? (
                     // Archived players: Show unarchive button
-                    <Button
-                      icon={<ArrowUndo24Regular />}
-                      appearance="subtle"
-                      size="small"
-                      onClick={() => onUnarchivePlayer(player.id)}
-                      title="Restore player"
+                    <Tooltip
+                      content={isAdmin ? "Restore player" : "Login required"}
+                      relationship="description"
                     >
-                      Restore
-                    </Button>
+                      <Button
+                        icon={<ArrowUndo24Regular />}
+                        appearance="subtle"
+                        size="small"
+                        onClick={() => onUnarchivePlayer(player.id)}
+                        disabled={!isAdmin}
+                      >
+                        Restore
+                      </Button>
+                    </Tooltip>
                   ) : (
                     // Active players: Show edit and archive/delete buttons
                     <>
-                      <Button
-                        icon={<Edit24Regular />}
-                        appearance="subtle"
-                        size="small"
-                        onClick={() => onEditPlayer(player)}
-                        title="Edit player"
-                      />
-                      <Button
-                        icon={hasMatches ? <Archive24Regular /> : <Delete24Regular />}
-                        appearance="subtle"
-                        size="small"
-                        onClick={() => onDeletePlayer(player.id, player.name, hasMatches)}
-                        title={hasMatches ? 'Archive player' : 'Delete player'}
+                      <Tooltip
+                        content={isAdmin ? "Edit player" : "Login required"}
+                        relationship="description"
                       >
-                        {hasMatches ? 'Archive' : 'Delete'}
-                      </Button>
+                        <Button
+                          icon={<Edit24Regular />}
+                          appearance="subtle"
+                          size="small"
+                          onClick={() => onEditPlayer(player)}
+                          disabled={!isAdmin}
+                        />
+                      </Tooltip>
+                      <Tooltip
+                        content={isAdmin ? (hasMatches ? "Archive player" : "Delete player") : "Login required"}
+                        relationship="description"
+                      >
+                        <Button
+                          icon={hasMatches ? <Archive24Regular /> : <Delete24Regular />}
+                          appearance="subtle"
+                          size="small"
+                          onClick={() => onDeletePlayer(player.id, player.name, hasMatches)}
+                          disabled={!isAdmin}
+                        >
+                          {hasMatches ? 'Archive' : 'Delete'}
+                        </Button>
+                      </Tooltip>
                     </>
                   )}
                 </div>

@@ -5,13 +5,23 @@ import {
   Text,
   Tab,
   TabList,
+  Button,
+  Avatar,
+  Menu,
+  MenuTrigger,
+  MenuPopover,
+  MenuList,
+  MenuItem,
 } from '@fluentui/react-components';
 import {
   Home24Regular,
   People24Regular,
   Trophy24Regular,
   AddCircle24Regular,
+  PersonRegular,
+  SignOutRegular,
 } from '@fluentui/react-icons';
+import { useAuth } from '../../contexts/AuthContext';
 
 const useStyles = makeStyles({
   root: {
@@ -38,6 +48,23 @@ const useStyles = makeStyles({
     fontWeight: tokens.fontWeightBold,
     margin: 0,
   },
+  authSection: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+  },
+  userInfo: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+  },
+  userEmail: {
+    fontSize: tokens.fontSizeBase200,
+  },
+  userRole: {
+    fontSize: tokens.fontSizeBase100,
+    opacity: 0.8,
+  },
   nav: {
     backgroundColor: tokens.colorNeutralBackground1,
     borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
@@ -60,6 +87,7 @@ export function AppLayout() {
   const styles = useStyles();
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, profile, signOut, isAdmin, isSuperAdmin } = useAuth();
 
   const getSelectedTab = () => {
     const path = location.pathname;
@@ -70,11 +98,56 @@ export function AppLayout() {
     return 'dashboard';
   };
 
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
+
+  const getRoleDisplay = () => {
+    if (isSuperAdmin) return 'Super Admin';
+    if (isAdmin) return 'Admin';
+    return 'Viewer';
+  };
+
   return (
     <div className={styles.root}>
       <header className={styles.header}>
         <div className={styles.headerContent}>
           <Text className={styles.title}>Football Recorder</Text>
+          <div className={styles.authSection}>
+            {user ? (
+              <>
+                <div className={styles.userInfo}>
+                  <Text className={styles.userEmail}>{profile?.email}</Text>
+                  <Text className={styles.userRole}>{getRoleDisplay()}</Text>
+                </div>
+                <Menu>
+                  <MenuTrigger disableButtonEnhancement>
+                    <Avatar
+                      name={profile?.full_name || profile?.email || ''}
+                      color="colorful"
+                      style={{ cursor: 'pointer' }}
+                    />
+                  </MenuTrigger>
+                  <MenuPopover>
+                    <MenuList>
+                      <MenuItem icon={<SignOutRegular />} onClick={handleSignOut}>
+                        Sign Out
+                      </MenuItem>
+                    </MenuList>
+                  </MenuPopover>
+                </Menu>
+              </>
+            ) : (
+              <Button
+                appearance="primary"
+                icon={<PersonRegular />}
+                onClick={() => navigate('/login')}
+              >
+                Login
+              </Button>
+            )}
+          </div>
         </div>
       </header>
 

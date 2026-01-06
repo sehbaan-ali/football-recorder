@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button } from '@fluentui/react-components';
+import { Button, Tooltip } from '@fluentui/react-components';
 import { AddCircle24Regular } from '@fluentui/react-icons';
 import { PageHeader } from '../components/layout/PageHeader';
 import { PlayerForm } from '../components/player/PlayerForm';
@@ -7,6 +7,7 @@ import { PlayerTable } from '../components/player/PlayerTable';
 import { usePlayers } from '../hooks/usePlayers';
 import { useMatches } from '../hooks/useMatches';
 import { useStats } from '../hooks/useStats';
+import { useAuth } from '../contexts/AuthContext';
 import type { Player, PlayerPosition } from '../types';
 
 // Position sort order
@@ -22,6 +23,7 @@ export function Players() {
   const { players, addPlayer, updatePlayer, deletePlayer, archivePlayer, unarchivePlayer, loading: playersLoading } = usePlayers();
   const { matches, loading: matchesLoading } = useMatches();
   const { playerStats } = useStats(players, matches);
+  const { isAdmin } = useAuth();
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
@@ -97,17 +99,23 @@ export function Players() {
         title="Players"
         subtitle="Manage your football players"
         actions={
-          <PlayerForm
-            onSubmit={handleAddPlayer}
-            trigger={
-              <Button
-                appearance="primary"
-                icon={<AddCircle24Regular />}
-              >
-                Add Player
-              </Button>
-            }
-          />
+          <Tooltip
+            content={isAdmin ? "Add a new player" : "Login required to add players"}
+            relationship="description"
+          >
+            <PlayerForm
+              onSubmit={handleAddPlayer}
+              trigger={
+                <Button
+                  appearance="primary"
+                  icon={<AddCircle24Regular />}
+                  disabled={!isAdmin}
+                >
+                  Add Player
+                </Button>
+              }
+            />
+          </Tooltip>
         }
       />
 
@@ -137,6 +145,7 @@ export function Players() {
             onDeletePlayer={handleDeletePlayer}
             onUnarchivePlayer={handleUnarchivePlayer}
             showArchived={showArchived}
+            isAdmin={isAdmin}
           />
 
           <PlayerForm
