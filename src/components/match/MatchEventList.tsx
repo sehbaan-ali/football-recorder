@@ -72,17 +72,17 @@ export function MatchEventList({ events, players }: MatchEventListProps) {
           <div className="grid grid-cols-2 gap-6">
             {/* Yellow Team Goals */}
             <div className="space-y-2">
-              <Badge className="bg-yellow-500 text-black hover:bg-yellow-600 mb-2">
+              <div className="text-xs font-medium text-yellow-700 dark:text-yellow-400 mb-2">
                 Yellow
-              </Badge>
+              </div>
               {yellowGoals.length > 0 ? (
                 <div className="space-y-1.5">
                   {yellowGoals.map(([playerId, data]) => (
                     <div key={playerId} className="flex items-center gap-2 text-sm">
-                      <span className="text-base">
+                      <span>{getPlayerName(playerId, players)}</span>
+                      <span className="text-muted-foreground">
                         {data.isOwnGoal ? '⚠️'.repeat(data.count) : '⚽'.repeat(data.count)}
                       </span>
-                      <span>{getPlayerName(playerId, players)}</span>
                       {data.isOwnGoal && (
                         <Badge variant="outline" className="text-[10px] px-1 py-0 text-amber-600">
                           OG
@@ -98,17 +98,17 @@ export function MatchEventList({ events, players }: MatchEventListProps) {
 
             {/* Red Team Goals */}
             <div className="space-y-2">
-              <Badge className="bg-red-500 text-white hover:bg-red-600 mb-2">
+              <div className="text-xs font-medium text-red-700 dark:text-red-400 mb-2">
                 Red
-              </Badge>
+              </div>
               {redGoals.length > 0 ? (
                 <div className="space-y-1.5">
                   {redGoals.map(([playerId, data]) => (
                     <div key={playerId} className="flex items-center gap-2 text-sm">
-                      <span className="text-base">
+                      <span>{getPlayerName(playerId, players)}</span>
+                      <span className="text-muted-foreground">
                         {data.isOwnGoal ? '⚠️'.repeat(data.count) : '⚽'.repeat(data.count)}
                       </span>
-                      <span>{getPlayerName(playerId, players)}</span>
                       {data.isOwnGoal && (
                         <Badge variant="outline" className="text-[10px] px-1 py-0 text-amber-600">
                           OG
@@ -132,15 +132,15 @@ export function MatchEventList({ events, players }: MatchEventListProps) {
           <div className="grid grid-cols-2 gap-6">
             {/* Yellow Team Assists */}
             <div className="space-y-2">
-              <Badge className="bg-yellow-500 text-black hover:bg-yellow-600 mb-2">
+              <div className="text-xs font-medium text-yellow-700 dark:text-yellow-400 mb-2">
                 Yellow
-              </Badge>
+              </div>
               {yellowAssists.length > 0 ? (
                 <div className="space-y-1.5">
                   {yellowAssists.map(([playerId, count]) => (
                     <div key={playerId} className="flex items-center gap-2 text-sm">
-                      <span className="text-base">{'👟'.repeat(count)}</span>
                       <span>{getPlayerName(playerId, players)}</span>
+                      <span className="text-muted-foreground">{'👟'.repeat(count)}</span>
                     </div>
                   ))}
                 </div>
@@ -151,15 +151,15 @@ export function MatchEventList({ events, players }: MatchEventListProps) {
 
             {/* Red Team Assists */}
             <div className="space-y-2">
-              <Badge className="bg-red-500 text-white hover:bg-red-600 mb-2">
+              <div className="text-xs font-medium text-red-700 dark:text-red-400 mb-2">
                 Red
-              </Badge>
+              </div>
               {redAssists.length > 0 ? (
                 <div className="space-y-1.5">
                   {redAssists.map(([playerId, count]) => (
                     <div key={playerId} className="flex items-center gap-2 text-sm">
-                      <span className="text-base">{'👟'.repeat(count)}</span>
                       <span>{getPlayerName(playerId, players)}</span>
+                      <span className="text-muted-foreground">{'👟'.repeat(count)}</span>
                     </div>
                   ))}
                 </div>

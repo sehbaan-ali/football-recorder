@@ -19,7 +19,6 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import type { Player, TeamColor } from '../../types';
-import { cn } from '@/lib/utils';
 
 interface LiveMatchRecorderProps {
   yellowPlayers: Player[];
@@ -93,21 +92,21 @@ export function LiveMatchRecorder({
           <div className="grid grid-cols-3 items-center gap-8">
             {/* Yellow Team */}
             <div className="text-center space-y-2">
-              <div className="text-sm font-medium text-muted-foreground">Yellow</div>
-              <div className="text-6xl font-bold text-yellow-500">
+              <div className="text-xs font-medium text-yellow-700 dark:text-yellow-400">Yellow</div>
+              <div className="text-5xl font-bold">
                 {yellowScore}
               </div>
             </div>
 
             {/* Separator */}
             <div className="text-center">
-              <div className="text-3xl font-semibold text-muted-foreground">-</div>
+              <div className="text-2xl font-light text-muted-foreground">-</div>
             </div>
 
             {/* Red Team */}
             <div className="text-center space-y-2">
-              <div className="text-sm font-medium text-muted-foreground">Red</div>
-              <div className="text-6xl font-bold text-red-500">
+              <div className="text-xs font-medium text-red-700 dark:text-red-400">Red</div>
+              <div className="text-5xl font-bold">
                 {redScore}
               </div>
             </div>
@@ -118,13 +117,13 @@ export function LiveMatchRecorder({
       {/* Team Controls */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Yellow Team */}
-        <Card className="border-2 bg-yellow-500/5 border-yellow-500/30">
+        <Card>
           <CardContent className="pt-6 space-y-3">
             <div className="text-center mb-4">
-              <h3 className="text-lg font-semibold">Yellow Team</h3>
+              <h3 className="text-sm font-medium text-yellow-700 dark:text-yellow-400">Yellow Team</h3>
             </div>
             <Button
-              className="w-full bg-yellow-500 hover:bg-yellow-600 text-black"
+              className="w-full"
               onClick={() => openGoalDialog('yellow')}
             >
               <Trophy className="h-4 w-4 mr-2" />
@@ -132,7 +131,7 @@ export function LiveMatchRecorder({
             </Button>
             <Button
               variant="outline"
-              className="w-full border-yellow-500/50 hover:bg-yellow-500/10"
+              className="w-full"
               onClick={() => openOwnGoalDialog('yellow')}
             >
               Own Goal
@@ -141,13 +140,13 @@ export function LiveMatchRecorder({
         </Card>
 
         {/* Red Team */}
-        <Card className="border-2 bg-red-500/5 border-red-500/30">
+        <Card>
           <CardContent className="pt-6 space-y-3">
             <div className="text-center mb-4">
-              <h3 className="text-lg font-semibold">Red Team</h3>
+              <h3 className="text-sm font-medium text-red-700 dark:text-red-400">Red Team</h3>
             </div>
             <Button
-              className="w-full bg-red-500 hover:bg-red-600 text-white"
+              className="w-full"
               onClick={() => openGoalDialog('red')}
             >
               <Trophy className="h-4 w-4 mr-2" />
@@ -155,7 +154,7 @@ export function LiveMatchRecorder({
             </Button>
             <Button
               variant="outline"
-              className="w-full border-red-500/50 hover:bg-red-500/10"
+              className="w-full"
               onClick={() => openOwnGoalDialog('red')}
             >
               Own Goal
@@ -233,11 +232,6 @@ export function LiveMatchRecorder({
             <Button
               onClick={handleAddGoal}
               disabled={!selectedScorer}
-              className={cn(
-                selectedTeam === 'yellow'
-                  ? 'bg-yellow-500 hover:bg-yellow-600 text-black'
-                  : 'bg-red-500 hover:bg-red-600 text-white'
-              )}
             >
               Add Goal
             </Button>
@@ -284,11 +278,6 @@ export function LiveMatchRecorder({
             <Button
               onClick={handleAddOwnGoal}
               disabled={!selectedScorer}
-              className={cn(
-                selectedTeam === 'yellow'
-                  ? 'bg-yellow-500 hover:bg-yellow-600 text-black'
-                  : 'bg-red-500 hover:bg-red-600 text-white'
-              )}
             >
               Add Own Goal
             </Button>

@@ -68,13 +68,9 @@ export function FormationSelector({
   excludePlayerIds,
   onFormationChange,
 }: FormationSelectorProps) {
-  const teamColor = team === 'yellow'
-    ? 'border-yellow-500/30'
-    : 'border-red-500/30';
-
-  const teamBadgeColor = team === 'yellow'
-    ? 'bg-yellow-500 text-black hover:bg-yellow-600'
-    : 'bg-red-500 text-white hover:bg-red-600';
+  const teamTextColor = team === 'yellow'
+    ? 'text-yellow-700 dark:text-yellow-400'
+    : 'text-red-700 dark:text-red-400';
 
   const teamName = team === 'yellow' ? 'Yellow Team' : 'Red Team';
 
@@ -142,7 +138,7 @@ export function FormationSelector({
     const availablePlayers = getAvailablePlayers(slot.id);
 
     return (
-      <div key={slot.id} className="w-32 space-y-1">
+      <div key={slot.id} className="w-36 space-y-1">
         <Label htmlFor={`slot-${slot.id}`} className="text-xs flex items-center justify-center gap-1.5">
           <span className="text-muted-foreground whitespace-nowrap">{slot.label}</span>
           <Badge className={cn("text-[10px] px-1 py-0", getPositionBadgeColor(slot.position))}>
@@ -189,13 +185,13 @@ export function FormationSelector({
   });
 
   return (
-    <Card className={cn("border", teamColor)}>
+    <Card>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Badge className={teamBadgeColor}>
+            <div className={cn("text-sm font-medium", teamTextColor)}>
               {teamName}
-            </Badge>
+            </div>
             <span className="text-xs text-muted-foreground">
               {filledSlots}/{totalSlots}
             </span>
@@ -236,7 +232,7 @@ export function FormationSelector({
 
           {/* WING Row - left and right */}
           {slotsByRow[4] && (
-            <div className="flex justify-between gap-2">
+            <div className="flex justify-between gap-2 px-4">
               {slotsByRow[4].map(slot => renderSlot(slot))}
             </div>
           )}

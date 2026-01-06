@@ -17,7 +17,7 @@ type Step = 'setup' | 'recording' | 'finalized';
 export function NewMatch() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { players } = usePlayers();
+  const { players, loading: playersLoading } = usePlayers();
   const { createMatch, updateMatch } = useMatches();
   const { isAdmin } = useAuth();
 
@@ -171,6 +171,24 @@ export function NewMatch() {
     }
   };
 
+  const handleBackToSetup = () => {
+    // Only show confirmation if there are recorded events
+    if (events.length > 0) {
+      const confirmed = window.confirm(
+        'Are you sure you want to go back?\n\n' +
+        'All recorded events will be lost. This action cannot be undone.'
+      );
+      if (!confirmed) return;
+    }
+
+    // Reset to setup (match was never saved to DB)
+    setYellowScore(0);
+    setRedScore(0);
+    setEvents([]);
+    setHasUnsavedChanges(false);
+    setStep('setup');
+  };
+
   const handleDiscardMatch = () => {
     // Warn user if there are events
     if (hasUnsavedChanges) {
@@ -233,6 +251,21 @@ export function NewMatch() {
     );
   }
 
+  // Show loading state
+  if (playersLoading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">New Match</h1>
+          <p className="text-muted-foreground">Record a new football match</p>
+        </div>
+        <div className="flex items-center justify-center h-64">
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (players.length < 18) {
     return (
       <div className="space-y-6">
@@ -255,13 +288,20 @@ export function NewMatch() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">New Match</h1>
-        <p className="text-muted-foreground">
-          {step === 'setup'
-            ? 'Select teams to start'
-            : 'Record match events in real-time'}
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">New Match</h1>
+          <p className="text-muted-foreground">
+            {step === 'setup'
+              ? 'Select teams to start'
+              : 'Record match events in real-time'}
+          </p>
+        </div>
+        {step === 'recording' && (
+          <Button variant="outline" onClick={handleBackToSetup} size="lg">
+            Back to Setup
+          </Button>
+        )}
       </div>
 
       {step === 'setup' && (
@@ -274,7 +314,7 @@ export function NewMatch() {
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="max-w-xs"
+              className="w-fit"
             />
           </div>
 
