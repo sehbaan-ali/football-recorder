@@ -70,3 +70,22 @@
   min-height: 100vh;
   @apply bg-background;
 }
+
+/* Custom scrollbar for horizontal match carousel */
+.scrollbar-thin::-webkit-scrollbar {
+  height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: hsl(var(--muted) / 0.3);
+  border-radius: 100px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 100px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}

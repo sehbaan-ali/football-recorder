@@ -138,7 +138,7 @@ export function FormationSelector({
     const availablePlayers = getAvailablePlayers(slot.id);
 
     return (
-      <div key={slot.id} className="w-28 sm:w-36 space-y-1">
+      <div key={slot.id} className="w-24 sm:w-36 space-y-1">
         <Label htmlFor={`slot-${slot.id}`} className="text-xs flex items-center justify-center gap-1.5">
           <span className="text-muted-foreground whitespace-nowrap">{slot.label}</span>
           <Badge className={cn("text-[10px] px-1 py-0", getPositionBadgeColor(slot.position))}>
@@ -155,7 +155,9 @@ export function FormationSelector({
           onValueChange={(value) => handleSlotChange(slot.id, value === '__NONE__' ? null : value)}
         >
           <SelectTrigger id={`slot-${slot.id}`} className="h-8 text-xs w-full">
-            <SelectValue placeholder="Select" />
+            <SelectValue placeholder="Select">
+              {player ? player.name : 'Select'}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent position="popper" sideOffset={4} className="max-h-[300px]">
             <SelectItem value="__NONE__">Clear</SelectItem>

@@ -120,14 +120,17 @@ export function Dashboard() {
           {/* Recent Matches */}
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">Recent Matches</h2>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {recentMatches.map(match => (
-                <MatchCard
-                  key={match.id}
-                  match={match}
-                  onClick={() => setSelectedMatch(match)}
-                />
-              ))}
+            <div className="relative">
+              <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-thin">
+                {recentMatches.map(match => (
+                  <div key={match.id} className="flex-none w-[280px] sm:w-[320px] snap-start">
+                    <MatchCard
+                      match={match}
+                      onClick={() => setSelectedMatch(match)}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 

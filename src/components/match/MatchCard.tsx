@@ -24,7 +24,7 @@ export function MatchCard({ match, onClick }: MatchCardProps) {
 
   return (
     <Card
-      className="cursor-pointer transition-all hover:shadow-md"
+      className="cursor-pointer transition-all hover:shadow-md h-full"
       onClick={onClick}
     >
       <CardHeader className="pb-3">
