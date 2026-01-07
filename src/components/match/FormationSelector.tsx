@@ -176,7 +176,8 @@ export function FormationSelector({
   };
 
   // Group slots by row
-  const slotsByRow: Record<number, typeof FORMATION_SLOTS> = {};
+  type FormationSlot = typeof FORMATION_SLOTS[number];
+  const slotsByRow: Record<number, FormationSlot[]> = {};
   FORMATION_SLOTS.forEach(slot => {
     if (!slotsByRow[slot.row]) {
       slotsByRow[slot.row] = [];

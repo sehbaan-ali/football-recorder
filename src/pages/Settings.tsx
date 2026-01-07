@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { Moon, Sun, Monitor } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTheme } from '../contexts/ThemeContext';
 
 type ThemeOption = 'light' | 'dark' | 'system';
 
 export function Settings() {
-  const { theme, setTheme } = useTheme();
+  const { setTheme } = useTheme();
   const [selectedTheme, setSelectedTheme] = useState<ThemeOption>(
     localStorage.getItem('theme-preference') as ThemeOption || 'system'
   );

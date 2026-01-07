@@ -1,7 +1,7 @@
 import { Circle, ArrowRight } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import type { Player, MatchEvent } from '../../types';
+import type { Player, MatchEvent, GoalEvent } from '../../types';
 import { getPlayerName } from '../../utils/helpers';
 import { cn } from '@/lib/utils';
 
@@ -43,7 +43,7 @@ export function MatchEventList({ events, players }: MatchEventListProps) {
 
   // Aggregate assists by player and team
   const aggregateAssists = (team: 'yellow' | 'red') => {
-    const assists = displayEvents.filter(e => e.team === team && e.type === 'goal' && e.assistPlayerId);
+    const assists = displayEvents.filter((e): e is GoalEvent => e.team === team && e.type === 'goal' && !!e.assistPlayerId);
     const playerAssistCount = new Map<string, number>();
 
     assists.forEach(assist => {

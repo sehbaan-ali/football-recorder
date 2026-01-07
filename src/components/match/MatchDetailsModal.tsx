@@ -69,7 +69,7 @@ export function MatchDetailsModal({
       e => e.playerId === playerId && (e.type === 'goal' || e.type === 'own-goal')
     ).length;
     const assists = match.events.filter(
-      e => e.assistPlayerId === playerId && e.type === 'goal'
+      e => e.type === 'goal' && e.assistPlayerId === playerId
     ).length;
     return { goals, assists };
   };

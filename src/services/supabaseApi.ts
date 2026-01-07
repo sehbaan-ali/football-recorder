@@ -255,11 +255,11 @@ export const statsApi = {
     return [];
   },
 
-  async getById(id: string): Promise<PlayerStats> {
+  async getById(_id: string): Promise<PlayerStats> {
     throw new Error('Not implemented - use useStats hook');
   },
 
-  async getTopPlayers(sortBy: string = 'wins', limit: number = 10): Promise<PlayerStats[]> {
+  async getTopPlayers(_sortBy: string = 'wins', _limit: number = 10): Promise<PlayerStats[]> {
     // For now, return empty array
     // Stats will be calculated client-side in useStats hook
     return [];

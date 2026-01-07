@@ -345,7 +345,7 @@ export function NewMatch() {
               id="match-date"
               type="date"
               value={date}
-              onChange={(e) => setDate(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDate(e.target.value)}
               className="w-fit"
             />
           </div>

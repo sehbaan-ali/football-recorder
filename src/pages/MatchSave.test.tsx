@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Test case for match save functionality
 describe('Match Save - Score Recording', () => {
-  let mockCreateMatch: ReturnType<typeof vi.fn>;
-  let mockAddMatchEvent: ReturnType<typeof vi.fn>;
+  let mockCreateMatch: any;
+  let mockAddMatchEvent: any;
   let capturedMatch: any;
   let capturedEvents: any[];
 
@@ -20,7 +20,7 @@ describe('Match Save - Score Recording', () => {
       return Promise.resolve(capturedMatch);
     });
 
-    mockAddMatchEvent = vi.fn().mockImplementation((matchId, event) => {
+    mockAddMatchEvent = vi.fn().mockImplementation((_matchId, event) => {
       capturedEvents.push(event);
 
       // Simulate what the backend does - update scores
@@ -143,7 +143,7 @@ describe('Match Save - Score Recording', () => {
     const yellowPlayerIds = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
     const redPlayerIds = ['10', '11', '12', '13', '14', '15', '16', '17', '18'];
 
-    const match = await mockCreateMatch(date, yellowPlayerIds, redPlayerIds);
+    await mockCreateMatch(date, yellowPlayerIds, redPlayerIds);
 
     // Don't add any goals
 
