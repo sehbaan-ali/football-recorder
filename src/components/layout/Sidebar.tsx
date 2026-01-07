@@ -72,7 +72,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         <div className="flex items-center justify-between gap-2">
           {!collapsed && (
             <h1 className="text-lg font-semibold text-foreground whitespace-nowrap overflow-hidden">
-              Football Recorder
+              Football Tracker
             </h1>
           )}
           <Button

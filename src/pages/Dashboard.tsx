@@ -48,7 +48,7 @@ export function Dashboard() {
         </div>
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16">
-            <h2 className="text-xl font-semibold mb-2">Welcome to Football Recorder!</h2>
+            <h2 className="text-xl font-semibold mb-2">Welcome to Football Tracker!</h2>
             <p className="text-muted-foreground mb-6">Get started by adding some players.</p>
             <Button onClick={() => navigate('/players')}>
               <Plus className="h-4 w-4 mr-2" />
@@ -63,17 +63,19 @@ export function Dashboard() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">Overview of your football matches</p>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Overview of your football matches</p>
         </div>
         <Button
           onClick={() => navigate('/match/new')}
           disabled={!isAdmin}
+          className="w-full sm:w-auto"
         >
           <Plus className="h-4 w-4 mr-2" />
-          Record New Match
+          <span className="hidden sm:inline">Record New Match</span>
+          <span className="sm:hidden">New Match</span>
         </Button>
       </div>
 

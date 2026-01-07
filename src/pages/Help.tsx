@@ -7,18 +7,18 @@ export function Help() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Help & Guide</h1>
-        <p className="text-muted-foreground">Learn how to use Football Recorder</p>
+        <p className="text-muted-foreground">Learn how to use Football Tracker</p>
       </div>
 
       {/* Overview */}
       <Card>
         <CardHeader>
           <CardTitle>Overview</CardTitle>
-          <CardDescription>What is Football Recorder?</CardDescription>
+          <CardDescription>What is Football Tracker?</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Football Recorder is a comprehensive app for tracking your football matches, managing players,
+            Football Tracker is a comprehensive app for tracking your football matches, managing players,
             and viewing statistics. Record match events in real-time, track player performance, and see
             who's leading the leaderboard.
           </p>

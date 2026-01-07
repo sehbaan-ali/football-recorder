@@ -58,7 +58,7 @@ export function Login() {
         <Card className="shadow-sm">
           <CardHeader className="space-y-1 text-center pb-4">
             <CardTitle className="text-2xl font-bold tracking-tight">
-              Football Recorder
+              Football Tracker
             </CardTitle>
             <CardDescription>
               Login to manage your matches

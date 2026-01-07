@@ -36,7 +36,7 @@ export function Settings() {
         <CardHeader>
           <CardTitle>Appearance</CardTitle>
           <CardDescription>
-            Customize how Football Recorder looks on your device
+            Customize how Football Tracker looks on your device
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -96,7 +96,7 @@ export function Settings() {
         <CardHeader>
           <CardTitle>About</CardTitle>
           <CardDescription>
-            Information about Football Recorder
+            Information about Football Tracker
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
