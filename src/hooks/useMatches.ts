@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { api } from '../services/api';
+import { supabase } from '../lib/supabase';
 import type { Match, MatchEvent } from '../types';
 
 export function useMatches() {
@@ -24,6 +25,51 @@ export function useMatches() {
     };
 
     loadMatches();
+
+    // Set up real-time subscription
+    const channel = supabase
+      .channel('matches-changes')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'matches' },
+        (payload) => {
+          console.log('Match inserted:', payload.new);
+          const newMatch = payload.new as Match;
+          setMatches(prev => {
+            // Check if already exists to prevent duplicates
+            if (prev.some(m => m.id === newMatch.id)) {
+              return prev;
+            }
+            return [newMatch, ...prev];
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'matches' },
+        (payload) => {
+          console.log('Match updated:', payload.new);
+          setMatches(prev =>
+            prev.map(match =>
+              match.id === (payload.new as Match).id ? (payload.new as Match) : match
+            )
+          );
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'matches' },
+        (payload) => {
+          console.log('Match deleted:', payload.old);
+          setMatches(prev => prev.filter(match => match.id !== (payload.old as Match).id));
+        }
+      )
+      .subscribe();
+
+    // Cleanup subscription on unmount
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const createMatch = useCallback(async (

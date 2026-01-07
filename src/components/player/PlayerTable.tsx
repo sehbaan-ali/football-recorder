@@ -50,7 +50,7 @@ export function PlayerTable({ players, playerStats, onEditPlayer, onDeletePlayer
   return (
     <Card className="w-full">
       <CardContent className="p-0">
-        <div className="relative w-full max-h-[calc(100vh-300px)] overflow-y-auto">
+        <div className="relative w-full max-h-[calc(100vh-220px)] overflow-y-auto">
           <table className="w-full caption-bottom text-sm">
             <thead className="[&_tr]:border-b sticky top-0 bg-background z-10">
               <tr className="border-b transition-colors hover:bg-muted/50">
