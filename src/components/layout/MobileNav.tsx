@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Users, Plus, Trophy } from 'lucide-react';
+import { Home, Users, Plus, Trophy, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function MobileNav() {
@@ -11,6 +11,7 @@ export function MobileNav() {
     { icon: Users, label: 'Players', path: '/players' },
     { icon: Plus, label: 'Match', path: '/match/new' },
     { icon: Trophy, label: 'Board', path: '/leaderboard' },
+    { icon: Settings, label: 'Settings', path: '/settings' },
   ];
 
   const isActive = (path: string) => {

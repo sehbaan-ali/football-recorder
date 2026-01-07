@@ -138,7 +138,7 @@ export function FormationSelector({
     const availablePlayers = getAvailablePlayers(slot.id);
 
     return (
-      <div key={slot.id} className="w-36 space-y-1">
+      <div key={slot.id} className="w-28 sm:w-36 space-y-1">
         <Label htmlFor={`slot-${slot.id}`} className="text-xs flex items-center justify-center gap-1.5">
           <span className="text-muted-foreground whitespace-nowrap">{slot.label}</span>
           <Badge className={cn("text-[10px] px-1 py-0", getPositionBadgeColor(slot.position))}>
@@ -157,7 +157,7 @@ export function FormationSelector({
           <SelectTrigger id={`slot-${slot.id}`} className="h-8 text-xs w-full">
             <SelectValue placeholder="Select" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent position="popper" sideOffset={4} className="max-h-[300px]">
             <SelectItem value="__NONE__">Clear</SelectItem>
             {availablePlayers.map(p => (
               <SelectItem key={p.id} value={p.id}>
@@ -212,35 +212,35 @@ export function FormationSelector({
         <div className="space-y-3">
           {/* GK Row - centered */}
           {slotsByRow[1] && (
-            <div className="flex justify-center gap-2">
+            <div className="flex justify-center gap-1 sm:gap-2">
               {slotsByRow[1].map(slot => renderSlot(slot))}
             </div>
           )}
 
           {/* DEF Row - spread across */}
           {slotsByRow[2] && (
-            <div className="flex justify-between gap-2 px-4">
+            <div className="flex justify-between gap-1 sm:gap-2 px-1 sm:px-4">
               {slotsByRow[2].map(slot => renderSlot(slot))}
             </div>
           )}
 
           {/* MID Row - centered together */}
           {slotsByRow[3] && (
-            <div className="flex justify-center gap-2">
+            <div className="flex justify-center gap-1 sm:gap-2">
               {slotsByRow[3].map(slot => renderSlot(slot))}
             </div>
           )}
 
           {/* WING Row - left and right */}
           {slotsByRow[4] && (
-            <div className="flex justify-between gap-2 px-4">
+            <div className="flex justify-between gap-1 sm:gap-2 px-1 sm:px-4">
               {slotsByRow[4].map(slot => renderSlot(slot))}
             </div>
           )}
 
           {/* ST Row - centered */}
           {slotsByRow[5] && (
-            <div className="flex justify-center gap-2">
+            <div className="flex justify-center gap-1 sm:gap-2">
               {slotsByRow[5].map(slot => renderSlot(slot))}
             </div>
           )}

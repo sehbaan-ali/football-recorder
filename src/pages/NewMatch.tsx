@@ -320,17 +320,17 @@ export function NewMatch() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">New Match</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">New Match</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             {step === 'setup'
               ? 'Select teams to start'
               : 'Record match events in real-time'}
           </p>
         </div>
         {step === 'recording' && (
-          <Button variant="outline" onClick={handleBackToSetup} size="lg">
+          <Button variant="outline" onClick={handleBackToSetup} size="lg" className="w-full sm:w-auto">
             Back to Setup
           </Button>
         )}
@@ -346,7 +346,7 @@ export function NewMatch() {
               type="date"
               value={date}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDate(e.target.value)}
-              className="w-fit"
+              className="w-full sm:w-fit"
             />
           </div>
 
@@ -373,7 +373,7 @@ export function NewMatch() {
             onClick={handleStartMatch}
             disabled={!canStartMatch}
             size="lg"
-            className="-mt-2"
+            className="-mt-2 w-full sm:w-auto"
           >
             Start Match
           </Button>
@@ -401,11 +401,11 @@ export function NewMatch() {
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3">
-            <Button onClick={handleSaveMatch} size="lg">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button onClick={handleSaveMatch} size="lg" className="w-full sm:w-auto">
               Save Match
             </Button>
-            <Button variant="outline" onClick={handleDiscardMatch} size="lg">
+            <Button variant="outline" onClick={handleDiscardMatch} size="lg" className="w-full sm:w-auto">
               Discard Match
             </Button>
           </div>
