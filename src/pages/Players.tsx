@@ -1,6 +1,16 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { PlayerForm } from '../components/player/PlayerForm';
 import { PlayerTable } from '../components/player/PlayerTable';
 import { usePlayers } from '../hooks/usePlayers';
@@ -26,6 +36,8 @@ export function Players() {
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [playerToDelete, setPlayerToDelete] = useState<{ id: string; name: string; hasMatches: boolean } | null>(null);
 
   const handleAddPlayer = (name: string, position: string) => {
     addPlayer(name, position);
@@ -52,24 +64,21 @@ export function Players() {
   };
 
   const handleDeletePlayer = (playerId: string, playerName: string, hasMatches: boolean) => {
-    if (hasMatches) {
-      // Archive instead of delete for players with match history
-      if (window.confirm(
-        `Archive ${playerName}?\n\n` +
-        `They will be removed from your active player list, but their match history and statistics will be preserved. ` +
-        `You can restore them later if needed.`
-      )) {
-        archivePlayer(playerId);
-      }
+    setPlayerToDelete({ id: playerId, name: playerName, hasMatches });
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!playerToDelete) return;
+
+    if (playerToDelete.hasMatches) {
+      archivePlayer(playerToDelete.id);
     } else {
-      // True deletion for players without match history
-      if (window.confirm(
-        `Delete ${playerName}?\n\n` +
-        `They have no match history. This action cannot be undone.`
-      )) {
-        deletePlayer(playerId);
-      }
+      deletePlayer(playerToDelete.id);
     }
+
+    setDeleteDialogOpen(false);
+    setPlayerToDelete(null);
   };
 
   const handleUnarchivePlayer = (playerId: string) => {
@@ -153,6 +162,28 @@ export function Players() {
           />
         </>
       )}
+
+      {/* Delete/Archive Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {playerToDelete?.hasMatches ? `Archive ${playerToDelete?.name}?` : `Delete ${playerToDelete?.name}?`}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {playerToDelete?.hasMatches
+                ? "They will be removed from your active player list, but their match history and statistics will be preserved. You can restore them later if needed."
+                : "They have no match history. This action cannot be undone."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete}>
+              {playerToDelete?.hasMatches ? 'Archive' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -1,10 +1,21 @@
-import { Trash2 } from 'lucide-react';
+import { Trash2, Circle, ArrowRight } from 'lucide-react';
+import { useState } from 'react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { MatchEventList } from './MatchEventList';
@@ -27,6 +38,8 @@ export function MatchDetailsModal({
   onClose,
   onDelete,
 }: MatchDetailsModalProps) {
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
   if (!match) return null;
 
   const yellowScore = match.yellowTeam.score;
@@ -61,11 +74,14 @@ export function MatchDetailsModal({
     return { goals, assists };
   };
 
-  const handleDelete = () => {
-    if (window.confirm('Are you sure you want to delete this match? This cannot be undone.')) {
-      onDelete(match.id);
-      onClose();
-    }
+  const handleDeleteClick = () => {
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    onDelete(match.id);
+    setDeleteDialogOpen(false);
+    onClose();
   };
 
   return (
@@ -81,7 +97,7 @@ export function MatchDetailsModal({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handleDelete}
+                onClick={handleDeleteClick}
                 className="gap-2"
               >
                 <Trash2 className="h-4 w-4" />
@@ -151,10 +167,14 @@ export function MatchDetailsModal({
                         >
                           <span>{player.name}</span>
                           {(stats.goals > 0 || stats.assists > 0) && (
-                            <span className="text-muted-foreground">
-                              {stats.goals > 0 && '⚽'.repeat(stats.goals)}
-                              {stats.assists > 0 && '👟'.repeat(stats.assists)}
-                            </span>
+                            <div className="inline-flex items-center gap-1 text-muted-foreground -mb-0.5">
+                              {stats.goals > 0 && Array.from({ length: stats.goals }).map((_, i) => (
+                                <Circle key={`goal-${i}`} className="h-3 w-3 fill-current" />
+                              ))}
+                              {stats.assists > 0 && Array.from({ length: stats.assists }).map((_, i) => (
+                                <ArrowRight key={`assist-${i}`} className="h-3 w-3" />
+                              ))}
+                            </div>
                           )}
                         </div>
                       );
@@ -177,10 +197,14 @@ export function MatchDetailsModal({
                         >
                           <span>{player.name}</span>
                           {(stats.goals > 0 || stats.assists > 0) && (
-                            <span className="text-muted-foreground">
-                              {stats.goals > 0 && '⚽'.repeat(stats.goals)}
-                              {stats.assists > 0 && '👟'.repeat(stats.assists)}
-                            </span>
+                            <div className="inline-flex items-center gap-1 text-muted-foreground -mb-0.5">
+                              {stats.goals > 0 && Array.from({ length: stats.goals }).map((_, i) => (
+                                <Circle key={`goal-${i}`} className="h-3 w-3 fill-current" />
+                              ))}
+                              {stats.assists > 0 && Array.from({ length: stats.assists }).map((_, i) => (
+                                <ArrowRight key={`assist-${i}`} className="h-3 w-3" />
+                              ))}
+                            </div>
                           )}
                         </div>
                       );
@@ -200,6 +224,24 @@ export function MatchDetailsModal({
           </div>
         </div>
       </DialogContent>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete match?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this match? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete}>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }

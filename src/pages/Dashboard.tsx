@@ -10,6 +10,7 @@ import { useMatches } from '../hooks/useMatches';
 import { useStats } from '../hooks/useStats';
 import { StatsService } from '../services/stats';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../hooks/use-toast';
 import type { Match } from '../types';
 
 export function Dashboard() {
@@ -18,6 +19,7 @@ export function Dashboard() {
   const { players, loading: playersLoading } = usePlayers();
   const { matches, deleteMatch, loading: matchesLoading } = useMatches();
   const { playerStats } = useStats(players, matches);
+  const { toast } = useToast();
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
 
   const loading = playersLoading || matchesLoading;
@@ -209,6 +211,10 @@ export function Dashboard() {
         onClose={() => setSelectedMatch(null)}
         onDelete={(matchId) => {
           deleteMatch(matchId);
+          toast({
+            title: "Success",
+            description: "Match deleted successfully!",
+          });
           setSelectedMatch(null);
         }}
       />

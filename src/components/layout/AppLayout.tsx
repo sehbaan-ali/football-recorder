@@ -14,7 +14,7 @@ export function AppLayout() {
       />
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-auto bg-background">
         <div className="w-full p-6">
           <Outlet />
         </div>

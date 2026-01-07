@@ -1,3 +1,4 @@
+import { Circle, ArrowRight } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { Player, MatchEvent } from '../../types';
@@ -80,9 +81,11 @@ export function MatchEventList({ events, players }: MatchEventListProps) {
                   {yellowGoals.map(([playerId, data]) => (
                     <div key={playerId} className="flex items-center gap-2 text-sm">
                       <span>{getPlayerName(playerId, players)}</span>
-                      <span className="text-muted-foreground">
-                        {data.isOwnGoal ? '⚠️'.repeat(data.count) : '⚽'.repeat(data.count)}
-                      </span>
+                      <div className="inline-flex items-center gap-1 text-muted-foreground -mb-0.5">
+                        {Array.from({ length: data.count }).map((_, i) => (
+                          <Circle key={i} className={cn("h-3 w-3", data.isOwnGoal ? "fill-amber-500 text-amber-500" : "fill-current")} />
+                        ))}
+                      </div>
                       {data.isOwnGoal && (
                         <Badge variant="outline" className="text-[10px] px-1 py-0 text-amber-600">
                           OG
@@ -106,9 +109,11 @@ export function MatchEventList({ events, players }: MatchEventListProps) {
                   {redGoals.map(([playerId, data]) => (
                     <div key={playerId} className="flex items-center gap-2 text-sm">
                       <span>{getPlayerName(playerId, players)}</span>
-                      <span className="text-muted-foreground">
-                        {data.isOwnGoal ? '⚠️'.repeat(data.count) : '⚽'.repeat(data.count)}
-                      </span>
+                      <div className="inline-flex items-center gap-1 text-muted-foreground -mb-0.5">
+                        {Array.from({ length: data.count }).map((_, i) => (
+                          <Circle key={i} className={cn("h-3 w-3", data.isOwnGoal ? "fill-amber-500 text-amber-500" : "fill-current")} />
+                        ))}
+                      </div>
                       {data.isOwnGoal && (
                         <Badge variant="outline" className="text-[10px] px-1 py-0 text-amber-600">
                           OG
@@ -140,7 +145,11 @@ export function MatchEventList({ events, players }: MatchEventListProps) {
                   {yellowAssists.map(([playerId, count]) => (
                     <div key={playerId} className="flex items-center gap-2 text-sm">
                       <span>{getPlayerName(playerId, players)}</span>
-                      <span className="text-muted-foreground">{'👟'.repeat(count)}</span>
+                      <div className="inline-flex items-center gap-1 text-muted-foreground -mb-0.5">
+                        {Array.from({ length: count }).map((_, i) => (
+                          <ArrowRight key={i} className="h-3 w-3" />
+                        ))}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -159,7 +168,11 @@ export function MatchEventList({ events, players }: MatchEventListProps) {
                   {redAssists.map(([playerId, count]) => (
                     <div key={playerId} className="flex items-center gap-2 text-sm">
                       <span>{getPlayerName(playerId, players)}</span>
-                      <span className="text-muted-foreground">{'👟'.repeat(count)}</span>
+                      <div className="inline-flex items-center gap-1 text-muted-foreground -mb-0.5">
+                        {Array.from({ length: count }).map((_, i) => (
+                          <ArrowRight key={i} className="h-3 w-3" />
+                        ))}
+                      </div>
                     </div>
                   ))}
                 </div>

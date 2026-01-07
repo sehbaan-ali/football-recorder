@@ -14,7 +14,10 @@
       "Bash(npx shadcn@latest add:*)",
       "Bash(copy \"@\\\\components\\\\ui\\\\tabs.tsx\" \"src\\\\components\\\\ui\\\\tabs.tsx\")",
       "Bash(ls:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(test:*)",
+      "Bash(grep:*)",
+      "WebFetch(domain:claude.ai)"
     ]
   }
 }

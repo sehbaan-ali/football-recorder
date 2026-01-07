@@ -4,12 +4,23 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { FormationSelector, type FormationAssignment } from '../components/match/FormationSelector';
 import { LiveMatchRecorder } from '../components/match/LiveMatchRecorder';
 import { MatchEventList } from '../components/match/MatchEventList';
 import { usePlayers } from '../hooks/usePlayers';
 import { useMatches } from '../hooks/useMatches';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../hooks/use-toast';
 import type { TeamColor, MatchEvent } from '../types';
 
 type Step = 'setup' | 'recording' | 'finalized';
@@ -20,8 +31,11 @@ export function NewMatch() {
   const { players, loading: playersLoading } = usePlayers();
   const { createMatch, updateMatch } = useMatches();
   const { isAdmin } = useAuth();
+  const { toast } = useToast();
 
   const [step, setStep] = useState<Step>('setup');
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<'back' | 'discard' | null>(null);
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [yellowFormation, setYellowFormation] = useState<FormationAssignment>({
     GK: null,
@@ -151,7 +165,11 @@ export function NewMatch() {
     // Create the match with final scores and all events
     const match = await createMatch(date, yellowPlayerIds, redPlayerIds);
     if (!match) {
-      alert('Failed to save match. Please try again.');
+      toast({
+        title: "Error",
+        description: "Failed to save match. Please try again.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -164,21 +182,26 @@ export function NewMatch() {
 
     if (success) {
       setHasUnsavedChanges(false);
-      alert('Match saved successfully!');
+      toast({
+        title: "Success",
+        description: "Match saved successfully!",
+      });
       navigate('/');
     } else {
-      alert('Failed to save match details. Please try again.');
+      toast({
+        title: "Error",
+        description: "Failed to save match details. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
   const handleBackToSetup = () => {
     // Only show confirmation if there are recorded events
     if (events.length > 0) {
-      const confirmed = window.confirm(
-        'Are you sure you want to go back?\n\n' +
-        'All recorded events will be lost. This action cannot be undone.'
-      );
-      if (!confirmed) return;
+      setConfirmAction('back');
+      setConfirmDialogOpen(true);
+      return;
     }
 
     // Reset to setup (match was never saved to DB)
@@ -192,11 +215,9 @@ export function NewMatch() {
   const handleDiscardMatch = () => {
     // Warn user if there are events
     if (hasUnsavedChanges) {
-      const confirmed = window.confirm(
-        'Are you sure you want to discard this match?\n\n' +
-        'All recorded events will be lost. This action cannot be undone.'
-      );
-      if (!confirmed) return;
+      setConfirmAction('discard');
+      setConfirmDialogOpen(true);
+      return;
     }
 
     // Reset to setup (match was never saved to DB)
@@ -205,6 +226,17 @@ export function NewMatch() {
     setEvents([]);
     setHasUnsavedChanges(false);
     setStep('setup');
+  };
+
+  const handleConfirmAction = () => {
+    // Reset to setup (match was never saved to DB)
+    setYellowScore(0);
+    setRedScore(0);
+    setEvents([]);
+    setHasUnsavedChanges(false);
+    setStep('setup');
+    setConfirmDialogOpen(false);
+    setConfirmAction(null);
   };
 
   const yellowPlayers = players.filter(p => yellowPlayerIds.includes(p.id));
@@ -379,6 +411,26 @@ export function NewMatch() {
           </div>
         </div>
       )}
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmAction === 'back' ? 'Go back to setup?' : 'Discard match?'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              All recorded events will be lost. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmAction}>
+              {confirmAction === 'back' ? 'Go Back' : 'Discard'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
