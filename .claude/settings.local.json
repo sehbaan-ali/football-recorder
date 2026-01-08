@@ -17,7 +17,10 @@
       "Bash(git add:*)",
       "Bash(test:*)",
       "Bash(grep:*)",
-      "WebFetch(domain:claude.ai)"
+      "WebFetch(domain:claude.ai)",
+      "Bash(func init:*)",
+      "Bash(npm start)",
+      "Bash(curl:*)"
     ]
   }
 }
