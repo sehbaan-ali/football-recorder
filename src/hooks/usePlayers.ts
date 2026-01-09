@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
 import { api } from '../services/api';
-import { supabase } from '../lib/supabase';
 import type { Player } from '../types';
 
 export function usePlayers() {
@@ -25,50 +24,8 @@ export function usePlayers() {
 
     loadPlayers();
 
-    // Set up real-time subscription
-    const channel = supabase
-      .channel('players-changes')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'players' },
-        (payload) => {
-          console.log('Player inserted:', payload.new);
-          const newPlayer = payload.new as Player;
-          setPlayers(prev => {
-            // Check if already exists to prevent duplicates
-            if (prev.some(p => p.id === newPlayer.id)) {
-              return prev;
-            }
-            return [...prev, newPlayer];
-          });
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'players' },
-        (payload) => {
-          console.log('Player updated:', payload.new);
-          setPlayers(prev =>
-            prev.map(player =>
-              player.id === (payload.new as Player).id ? (payload.new as Player) : player
-            )
-          );
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'DELETE', schema: 'public', table: 'players' },
-        (payload) => {
-          console.log('Player deleted:', payload.old);
-          setPlayers(prev => prev.filter(player => player.id !== (payload.old as Player).id));
-        }
-      )
-      .subscribe();
-
-    // Cleanup subscription on unmount
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    // TODO: Add Azure SignalR real-time updates later
+    // For now, data updates on page refresh or after mutations
   }, []);
 
   const addPlayer = useCallback(async (name: string, position: string): Promise<Player | null> => {

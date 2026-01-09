@@ -20,7 +20,9 @@
       "WebFetch(domain:claude.ai)",
       "Bash(func init:*)",
       "Bash(npm start)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(jq:*)",
+      "Bash(node add-players.js:*)"
     ]
   }
 }
