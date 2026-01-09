@@ -25,7 +25,24 @@
       "Bash(node add-players.js:*)",
       "Bash(git commit:*)",
       "Bash(git checkout:*)",
-      "Bash(git merge:*)"
+      "Bash(git merge:*)",
+      "Bash(az account:*)",
+      "Bash(az login:*)",
+      "Bash(az storage account create:*)",
+      "Bash(az group list:*)",
+      "Bash(az functionapp create:*)",
+      "Bash(az functionapp config appsettings set:*)",
+      "Bash(func azure functionapp publish football-tracker-api)",
+      "Bash(az functionapp cors:*)",
+      "Bash(az extension add:*)",
+      "Bash(az staticwebapp create:*)",
+      "Bash(az staticwebapp secrets:*)",
+      "Bash(npx @azure/static-web-apps-cli deploy:*)",
+      "Bash(az postgres flexible-server list:*)",
+      "Bash(az functionapp config appsettings list:*)",
+      "Bash(az staticwebapp hostname set:*)",
+      "Bash(az staticwebapp list:*)",
+      "Bash(az functionapp deployment list-publishing-profiles:*)"
     ]
   }
 }

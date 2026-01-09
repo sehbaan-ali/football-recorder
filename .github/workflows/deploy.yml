@@ -1,0 +1,64 @@
+name: Deploy to Azure
+
+# Trigger: Run this workflow when code is pushed to master branch
+on:
+  push:
+    branches:
+      - master
+
+# Define two separate jobs that run in parallel
+jobs:
+  # JOB 1: Build and deploy the frontend (React app)
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    name: Deploy Frontend to Static Web App
+
+    steps:
+      # Step 1: Download the code from GitHub
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Build and deploy to Azure Static Web Apps
+      - name: Build and Deploy Frontend
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          # Use the secret token we added earlier
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: "upload"
+
+          # Tell Azure where to find the code
+          app_location: "/" # Root of the repo contains package.json
+          api_location: "" # No API in the static web app
+          output_location: "dist" # Vite builds to 'dist' folder
+
+  # JOB 2: Build and deploy the backend (Azure Functions)
+  deploy-backend:
+    runs-on: ubuntu-latest
+    name: Deploy Backend Azure Functions
+
+    steps:
+      # Step 1: Download the code from GitHub
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Node.js environment
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+
+      # Step 3: Install dependencies and build
+      - name: Install dependencies
+        run: |
+          cd azure-functions
+          npm install
+          npm run build
+
+      # Step 4: Deploy to Azure Functions
+      - name: Deploy to Azure Functions
+        uses: Azure/functions-action@v1
+        with:
+          app-name: 'football-tracker-api'
+          package: './azure-functions'
+          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
