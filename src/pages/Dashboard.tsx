@@ -222,6 +222,7 @@ export function Dashboard() {
           });
           setSelectedMatch(null);
         }}
+        isAdmin={isAdmin}
       />
     </div>
   );

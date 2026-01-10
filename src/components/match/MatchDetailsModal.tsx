@@ -29,6 +29,7 @@ interface MatchDetailsModalProps {
   open: boolean;
   onClose: () => void;
   onDelete: (matchId: string) => void;
+  isAdmin?: boolean;
 }
 
 export function MatchDetailsModal({
@@ -37,6 +38,7 @@ export function MatchDetailsModal({
   open,
   onClose,
   onDelete,
+  isAdmin = false,
 }: MatchDetailsModalProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
@@ -94,15 +96,17 @@ export function MatchDetailsModal({
               <p className="text-sm text-muted-foreground">{formatDate(match.date)}</p>
             </div>
             <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleDeleteClick}
-                className="gap-2"
-              >
-                <Trash2 className="h-4 w-4" />
-                Delete
-              </Button>
+              {isAdmin && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDeleteClick}
+                  className="gap-2"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Delete
+                </Button>
+              )}
               <Button
                 variant="outline"
                 size="sm"
