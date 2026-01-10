@@ -17,7 +17,20 @@
       "Bash(git add:*)",
       "Bash(test:*)",
       "Bash(grep:*)",
-      "WebFetch(domain:claude.ai)"
+      "WebFetch(domain:claude.ai)",
+      "Bash(git reset:*)",
+      "Bash(git checkout:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nRevert to Supabase - Back to simple, working setup\n\nAfter extensive Azure debugging \\(SignalR CORS, authentication, timeouts\\),\nmade the decision to return to Supabase for better developer experience.\n\n**What changed:**\n- ✅ Reverted to last working Supabase version \\(commit 4e58f2b\\)\n- ✅ Restored Supabase authentication \\(simple email/password\\)\n- ✅ Real-time updates work out of the box\n- ✅ Kept sleek loading UI improvements from Azure work\n- ✅ All Azure work preserved in azure-backup-20260110 branch\n\n**Why:**\n- Spending more time debugging than building features\n- Supabase is simpler for personal/friends use case\n- Real-time just works without CORS configuration\n- Can always migrate to Azure later if needed with revenue\n\n**Result:**\n- Simple setup, less maintenance\n- Focus on features, not infrastructure\n- Happy developer, happy users!\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(az signalr delete:*)",
+      "Bash(az functionapp delete:*)",
+      "Bash(az appservice plan delete:*)",
+      "Bash(az staticwebapp delete:*)",
+      "Bash(az resource list:*)",
+      "Bash(az storage account delete:*)",
+      "Bash(az monitor action-group delete:*)",
+      "Bash(az group delete:*)",
+      "Bash(git rm:*)",
+      "Bash(powershell -Command \"Remove-Item -Recurse -Force azure-functions\")"
     ]
   }
 }
