@@ -318,9 +318,9 @@ export function NewMatch() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">New Match</h1>
           <p className="text-sm sm:text-base text-muted-foreground">
@@ -330,14 +330,14 @@ export function NewMatch() {
           </p>
         </div>
         {step === 'recording' && (
-          <Button variant="outline" onClick={handleBackToSetup} size="lg" className="w-full sm:w-auto">
+          <Button variant="outline" onClick={handleBackToSetup} className="w-full sm:w-auto">
             Back to Setup
           </Button>
         )}
       </div>
 
       {step === 'setup' && (
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Date Field */}
           <div className="space-y-2">
             <Label htmlFor="match-date">Match Date</Label>
@@ -351,7 +351,7 @@ export function NewMatch() {
           </div>
 
           {/* Team Selection */}
-          <div className="space-y-6">
+          <div className="space-y-3">
             <FormationSelector
               team="yellow"
               players={players.filter(p => !p.archived)}
@@ -372,8 +372,7 @@ export function NewMatch() {
           <Button
             onClick={handleStartMatch}
             disabled={!canStartMatch}
-            size="lg"
-            className="-mt-2 w-full sm:w-auto"
+            className="w-full sm:w-auto"
           >
             Start Match
           </Button>
@@ -381,7 +380,7 @@ export function NewMatch() {
       )}
 
       {step === 'recording' && (
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Live Recorder */}
           <LiveMatchRecorder
             yellowPlayers={yellowPlayers}
@@ -395,17 +394,17 @@ export function NewMatch() {
           />
 
           {/* Match Events */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             <h2 className="text-lg font-semibold">Match Events</h2>
             <MatchEventList events={events} players={players} />
           </div>
 
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-3">
-            <Button onClick={handleSaveMatch} size="lg" className="w-full sm:w-auto">
+            <Button onClick={handleSaveMatch} className="w-full sm:w-auto">
               Save Match
             </Button>
-            <Button variant="outline" onClick={handleDiscardMatch} size="lg" className="w-full sm:w-auto">
+            <Button variant="outline" onClick={handleDiscardMatch} className="w-full sm:w-auto">
               Discard Match
             </Button>
           </div>
