@@ -346,7 +346,7 @@ export function NewMatch() {
               type="date"
               value={date}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDate(e.target.value)}
-              className="w-full sm:w-fit"
+              className="max-w-full w-fit"
             />
           </div>
 
