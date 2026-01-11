@@ -30,7 +30,9 @@
       "Bash(az monitor action-group delete:*)",
       "Bash(az group delete:*)",
       "Bash(git rm:*)",
-      "Bash(powershell -Command \"Remove-Item -Recurse -Force azure-functions\")"
+      "Bash(powershell -Command \"Remove-Item -Recurse -Force azure-functions\")",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ]
   }
 }
