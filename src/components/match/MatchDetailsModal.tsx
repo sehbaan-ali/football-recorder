@@ -1,4 +1,4 @@
-import { Trash2, Circle, ArrowRight } from 'lucide-react';
+import { Trash2, Circle, ArrowRight, Trophy, Edit } from 'lucide-react';
 import { useState } from 'react';
 import {
   Dialog,
@@ -17,8 +17,10 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { MatchEventList } from './MatchEventList';
+import { EditMatchDialog } from './EditMatchDialog';
 import { formatDate } from '../../utils/helpers';
 import { cn } from '@/lib/utils';
 import type { Match, Player } from '../../types';
@@ -29,6 +31,7 @@ interface MatchDetailsModalProps {
   open: boolean;
   onClose: () => void;
   onDelete: (matchId: string) => void;
+  onEdit: (matchId: string, updates: Partial<Match>) => Promise<boolean>;
   isAdmin?: boolean;
 }
 
@@ -38,9 +41,11 @@ export function MatchDetailsModal({
   open,
   onClose,
   onDelete,
+  onEdit,
   isAdmin = false,
 }: MatchDetailsModalProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   if (!match) return null;
 
@@ -64,6 +69,14 @@ export function MatchDetailsModal({
   const redPlayers = match.redTeam.playerIds
     .map(id => players.find(p => p.id === id))
     .filter((p): p is NonNullable<typeof p> => p !== undefined);
+
+  const motmPlayer = match.manOfTheMatch
+    ? players.find((p) => p.id === match.manOfTheMatch)
+    : null;
+
+  const motmTeam = motmPlayer
+    ? (yellowPlayers.find((p) => p.id === motmPlayer.id) ? 'yellow' : 'red')
+    : null;
 
   // Calculate player stats for emoticons
   const getPlayerStats = (playerId: string) => {
@@ -97,15 +110,26 @@ export function MatchDetailsModal({
             </div>
             <div className="flex gap-2">
               {isAdmin && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleDeleteClick}
-                  className="gap-2"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  Delete
-                </Button>
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setEditDialogOpen(true)}
+                    className="gap-2"
+                  >
+                    <Edit className="h-4 w-4" />
+                    Edit
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleDeleteClick}
+                    className="gap-2"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete
+                  </Button>
+                </>
               )}
               <Button
                 variant="outline"
@@ -147,6 +171,35 @@ export function MatchDetailsModal({
               </div>
             </CardContent>
           </Card>
+
+          {/* Man of the Match */}
+          {motmPlayer && (
+            <Card className="border-yellow-500/20 bg-yellow-500/5">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-center gap-3">
+                  <Trophy className="h-5 w-5 text-yellow-600" />
+                  <div className="text-center">
+                    <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                      Man of the Match
+                    </div>
+                    <div className="flex items-center gap-2 justify-center">
+                      <span className="text-lg font-bold">{motmPlayer.name}</span>
+                      <Badge
+                        className={cn(
+                          'text-xs',
+                          motmTeam === 'yellow'
+                            ? 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400'
+                            : 'bg-red-500/10 text-red-700 dark:text-red-400'
+                        )}
+                      >
+                        {motmTeam === 'yellow' ? 'Yellow' : 'Red'}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Teams and Events */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -246,6 +299,15 @@ export function MatchDetailsModal({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit Dialog */}
+      <EditMatchDialog
+        match={match}
+        players={players}
+        open={editDialogOpen}
+        onClose={() => setEditDialogOpen(false)}
+        onSave={onEdit}
+      />
     </Dialog>
   );
 }

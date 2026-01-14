@@ -1,14 +1,16 @@
+import { Trophy } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import type { Match } from '../../types';
+import type { Match, Player } from '../../types';
 import { formatDate } from '../../utils/helpers';
 import { cn } from '@/lib/utils';
 
 interface MatchCardProps {
   match: Match;
+  players: Player[];
   onClick?: () => void;
 }
 
-export function MatchCard({ match, onClick }: MatchCardProps) {
+export function MatchCard({ match, players, onClick }: MatchCardProps) {
   const yellowScore = match.yellowTeam.score;
   const redScore = match.redTeam.score;
 
@@ -21,6 +23,10 @@ export function MatchCard({ match, onClick }: MatchCardProps) {
     result = 'Red Wins';
     resultColor = 'text-foreground';
   }
+
+  const motmPlayer = match.manOfTheMatch
+    ? players.find((p) => p.id === match.manOfTheMatch)
+    : null;
 
   return (
     <Card
@@ -60,6 +66,14 @@ export function MatchCard({ match, onClick }: MatchCardProps) {
         <div className={cn("text-center text-sm font-medium", resultColor)}>
           {result}
         </div>
+
+        {motmPlayer && (
+          <div className="flex items-center justify-center gap-1.5 mt-3 pt-3 border-t border-muted">
+            <Trophy className="h-3 w-3 text-yellow-600" />
+            <span className="text-xs text-muted-foreground">MOTM:</span>
+            <span className="text-xs font-medium">{motmPlayer.name}</span>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

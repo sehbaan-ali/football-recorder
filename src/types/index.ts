@@ -6,6 +6,7 @@ export interface Player {
   position: PlayerPosition;
   createdAt: string;
   archived?: boolean;
+  isGuest?: boolean;
 }
 
 export type TeamColor = 'yellow' | 'red';
@@ -31,6 +32,7 @@ export interface GoalEvent {
 export interface OwnGoalEvent {
   type: 'own-goal';
   playerId: string;
+  assistPlayerId?: string;
   team: TeamColor;
   timestamp: string;
 }
@@ -48,6 +50,7 @@ export interface Match {
   redTeam: Team;
   events: MatchEvent[];
   createdAt: string;
+  manOfTheMatch?: string;
 }
 
 export interface PlayerStats {
@@ -61,6 +64,7 @@ export interface PlayerStats {
   assists: number;
   ownGoals: number;
   cleanSheets: number;
+  manOfTheMatchAwards: number;
 }
 
-export type SortBy = 'wins' | 'goals' | 'assists' | 'cleanSheets';
+export type SortBy = 'matchesPlayed' | 'wins' | 'draws' | 'losses' | 'goals' | 'assists' | 'cleanSheets' | 'manOfTheMatchAwards';

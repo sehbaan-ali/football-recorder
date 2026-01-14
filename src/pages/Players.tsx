@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { LoadingState } from '@/components/ui/loading-spinner';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,7 +14,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { PlayerForm } from '../components/player/PlayerForm';
-import { PlayerTable } from '../components/player/PlayerTable';
+import { PlayerGrid } from '../components/player/PlayerGrid';
 import { usePlayers } from '../hooks/usePlayers';
 import { useMatches } from '../hooks/useMatches';
 import { useStats } from '../hooks/useStats';
@@ -38,6 +40,8 @@ export function Players() {
   const [showArchived, setShowArchived] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [playerToDelete, setPlayerToDelete] = useState<{ id: string; name: string; hasMatches: boolean } | null>(null);
+  const [searchText, setSearchText] = useState('');
+  const [positionFilter, setPositionFilter] = useState<string>('All');
 
   const handleAddPlayer = (name: string, position: string) => {
     addPlayer(name, position);
@@ -88,7 +92,9 @@ export function Players() {
   const loading = playersLoading || matchesLoading;
 
   // Filter players based on archived status and sort by position
-  const filteredPlayers = players
+  // Exclude guest players from the players management page
+  const baseFilteredPlayers = players
+    .filter(player => !player.isGuest)
     .filter(player => showArchived ? player.archived : !player.archived)
     .sort((a, b) => {
       // Sort by position first
@@ -99,7 +105,16 @@ export function Players() {
       return a.name.localeCompare(b.name);
     });
 
-  const archivedCount = players.filter(p => p.archived).length;
+  // Apply search and position filters
+  const filteredPlayers = baseFilteredPlayers.filter(player => {
+    const matchesSearch = player.name.toLowerCase().includes(searchText.toLowerCase());
+    const matchesPosition = positionFilter === 'All' || player.position === positionFilter;
+    return matchesSearch && matchesPosition;
+  });
+
+  const archivedCount = players.filter(p => !p.isGuest && p.archived).length;
+  const isFiltered = searchText.length > 0 || positionFilter !== 'All';
+  const totalCount = baseFilteredPlayers.length;
 
   return (
     <div className="space-y-6">
@@ -121,9 +136,7 @@ export function Players() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center h-64">
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
+        <LoadingState message="Loading players" />
       ) : (
         <>
           {/* Tabs */}
@@ -142,7 +155,70 @@ export function Players() {
             </Button>
           </div>
 
-          <PlayerTable
+          {/* Search and Filter */}
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row gap-4">
+              {/* Search Input */}
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Search players..."
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+
+              {/* Position Filter Buttons */}
+              <div className="flex gap-2 flex-wrap">
+                <Button
+                  variant={positionFilter === 'All' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setPositionFilter('All')}
+                >
+                  All
+                </Button>
+                <Button
+                  variant={positionFilter === 'GK' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setPositionFilter('GK')}
+                >
+                  GK
+                </Button>
+                <Button
+                  variant={positionFilter === 'DEF' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setPositionFilter('DEF')}
+                >
+                  DEF
+                </Button>
+                <Button
+                  variant={positionFilter === 'MID' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setPositionFilter('MID')}
+                >
+                  MID
+                </Button>
+                <Button
+                  variant={positionFilter === 'WING' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setPositionFilter('WING')}
+                >
+                  WING
+                </Button>
+                <Button
+                  variant={positionFilter === 'ST' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setPositionFilter('ST')}
+                >
+                  ST
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <PlayerGrid
             players={filteredPlayers}
             playerStats={playerStats}
             onEditPlayer={handleEditPlayer}
@@ -150,7 +226,15 @@ export function Players() {
             onUnarchivePlayer={handleUnarchivePlayer}
             showArchived={showArchived}
             isAdmin={isAdmin}
+            isFiltered={isFiltered}
           />
+
+          {/* Result count */}
+          {isFiltered && filteredPlayers.length > 0 && (
+            <p className="text-sm text-muted-foreground text-center">
+              Showing {filteredPlayers.length} of {totalCount} players
+            </p>
+          )}
 
           <PlayerForm
             onSubmit={handleUpdatePlayer}

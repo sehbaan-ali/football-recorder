@@ -20,6 +20,7 @@ export const playerApi = {
       position: row.position,
       createdAt: row.created_at,
       archived: row.archived || false,
+      isGuest: row.is_guest || false,
     }));
   },
 
@@ -38,10 +39,11 @@ export const playerApi = {
       position: data.position,
       createdAt: data.created_at,
       archived: data.archived || false,
+      isGuest: data.is_guest || false,
     };
   },
 
-  async create(name: string, position: string): Promise<Player> {
+  async create(name: string, position: string, isGuest: boolean = false): Promise<Player> {
     const { data, error } = await supabase
       .from('players')
       .insert([
@@ -49,6 +51,7 @@ export const playerApi = {
           name,
           position,
           archived: false,
+          is_guest: isGuest,
         },
       ])
       .select()
@@ -62,6 +65,7 @@ export const playerApi = {
       position: data.position,
       createdAt: data.created_at,
       archived: data.archived || false,
+      isGuest: data.is_guest || false,
     };
   },
 
@@ -70,6 +74,7 @@ export const playerApi = {
     if (updates.name !== undefined) updateData.name = updates.name;
     if (updates.position !== undefined) updateData.position = updates.position;
     if (updates.archived !== undefined) updateData.archived = updates.archived;
+    if (updates.isGuest !== undefined) updateData.is_guest = updates.isGuest;
 
     const { data, error } = await supabase
       .from('players')
@@ -86,6 +91,7 @@ export const playerApi = {
       position: data.position,
       createdAt: data.created_at,
       archived: data.archived || false,
+      isGuest: data.is_guest || false,
     };
   },
 
@@ -133,6 +139,7 @@ export const matchApi = {
       },
       events: row.events || [],
       createdAt: row.created_at,
+      manOfTheMatch: row.man_of_the_match || undefined,
     }));
   },
 
@@ -158,6 +165,7 @@ export const matchApi = {
       },
       events: data.events || [],
       createdAt: data.created_at,
+      manOfTheMatch: data.man_of_the_match || undefined,
     };
   },
 
@@ -172,6 +180,7 @@ export const matchApi = {
           red_team_player_ids: match.redTeam.playerIds,
           red_team_score: match.redTeam.score,
           events: match.events,
+          man_of_the_match: match.manOfTheMatch || null,
         },
       ])
       .select()
@@ -192,6 +201,7 @@ export const matchApi = {
       },
       events: data.events || [],
       createdAt: data.created_at,
+      manOfTheMatch: data.man_of_the_match || undefined,
     };
   },
 
@@ -208,6 +218,9 @@ export const matchApi = {
       updateData.red_team_score = updates.redTeam.score;
     }
     if (updates.events !== undefined) updateData.events = updates.events;
+    if (updates.manOfTheMatch !== undefined) {
+      updateData.man_of_the_match = updates.manOfTheMatch || null;
+    }
 
     const { data, error } = await supabase
       .from('matches')
@@ -231,6 +244,7 @@ export const matchApi = {
       },
       events: data.events || [],
       createdAt: data.created_at,
+      manOfTheMatch: data.man_of_the_match || undefined,
     };
   },
 

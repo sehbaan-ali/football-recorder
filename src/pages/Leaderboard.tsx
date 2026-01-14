@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { LoadingState } from '@/components/ui/loading-spinner';
 import { LeaderboardTable } from '../components/leaderboard/LeaderboardTable';
-import { StatFilters } from '../components/leaderboard/StatFilters';
+import { SortDropdown } from '../components/leaderboard/SortDropdown';
 import { usePlayers } from '../hooks/usePlayers';
 import { useMatches } from '../hooks/useMatches';
 import { useStats } from '../hooks/useStats';
@@ -12,8 +13,20 @@ export function Leaderboard() {
   const { matches, loading: matchesLoading } = useMatches();
   const { playerStats } = useStats(players, matches);
   const [sortBy, setSortBy] = useState<SortBy>('wins');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
-  const sortedStats = StatsService.getTopPlayers(playerStats, sortBy, playerStats.length);
+  const handleSort = (field: SortBy) => {
+    if (field === sortBy) {
+      // Toggle direction if same field
+      setSortDirection(prev => prev === 'desc' ? 'asc' : 'desc');
+    } else {
+      // New field: set to field and reset to descending
+      setSortBy(field);
+      setSortDirection('desc');
+    }
+  };
+
+  const sortedStats = StatsService.getTopPlayers(playerStats, sortBy, playerStats.length, sortDirection);
   const loading = playersLoading || matchesLoading;
 
   return (
@@ -25,13 +38,17 @@ export function Leaderboard() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center h-64">
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
+        <LoadingState message="Loading leaderboard" />
       ) : (
         <div className="space-y-4">
-          <StatFilters selectedSort={sortBy} onSortChange={setSortBy} />
-          <LeaderboardTable stats={sortedStats} />
+          <SortDropdown value={sortBy} onChange={handleSort} />
+          <LeaderboardTable
+            stats={sortedStats}
+            players={players}
+            sortBy={sortBy}
+            sortDirection={sortDirection}
+            onSort={handleSort}
+          />
         </div>
       )}
     </div>

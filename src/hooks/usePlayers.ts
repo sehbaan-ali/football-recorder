@@ -32,8 +32,15 @@ export function usePlayers() {
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'players' },
         (payload) => {
-          console.log('Player inserted:', payload.new);
-          const newPlayer = payload.new as Player;
+          const row = payload.new as any;
+          const newPlayer: Player = {
+            id: row.id,
+            name: row.name,
+            position: row.position,
+            createdAt: row.created_at,
+            archived: row.archived || false,
+            isGuest: row.is_guest || false,
+          };
           setPlayers(prev => {
             // Check if already exists to prevent duplicates
             if (prev.some(p => p.id === newPlayer.id)) {
@@ -47,10 +54,18 @@ export function usePlayers() {
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'players' },
         (payload) => {
-          console.log('Player updated:', payload.new);
+          const row = payload.new as any;
+          const updatedPlayer: Player = {
+            id: row.id,
+            name: row.name,
+            position: row.position,
+            createdAt: row.created_at,
+            archived: row.archived || false,
+            isGuest: row.is_guest || false,
+          };
           setPlayers(prev =>
             prev.map(player =>
-              player.id === (payload.new as Player).id ? (payload.new as Player) : player
+              player.id === updatedPlayer.id ? updatedPlayer : player
             )
           );
         }
@@ -59,7 +74,6 @@ export function usePlayers() {
         'postgres_changes',
         { event: 'DELETE', schema: 'public', table: 'players' },
         (payload) => {
-          console.log('Player deleted:', payload.old);
           setPlayers(prev => prev.filter(player => player.id !== (payload.old as Player).id));
         }
       )
@@ -71,10 +85,17 @@ export function usePlayers() {
     };
   }, []);
 
-  const addPlayer = useCallback(async (name: string, position: string): Promise<Player | null> => {
+  const addPlayer = useCallback(async (name: string, position: string, isGuest: boolean = false): Promise<Player | null> => {
     try {
-      const newPlayer = await api.players.create(name, position);
-      setPlayers(prev => [...prev, newPlayer]);
+      const newPlayer = await api.players.create(name, position, isGuest);
+      // Update state immediately (don't rely solely on real-time subscription)
+      setPlayers(prev => {
+        // Check if already exists to prevent duplicates
+        if (prev.some(p => p.id === newPlayer.id)) {
+          return prev;
+        }
+        return [...prev, newPlayer];
+      });
       return newPlayer;
     } catch (err) {
       console.error('Error adding player:', err);

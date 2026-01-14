@@ -32,7 +32,13 @@
       "Bash(git rm:*)",
       "Bash(powershell -Command \"Remove-Item -Recurse -Force azure-functions\")",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(scoop:*)",
+      "Bash(supabase --version:*)",
+      "Bash(powershell -Command \"supabase --version\")",
+      "Bash(timeout 3 tail:*)",
+      "Bash(node add-players.js:*)",
+      "Bash(powershell -Command:*)"
     ]
   }
 }

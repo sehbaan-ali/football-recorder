@@ -14,6 +14,7 @@ export function StatFilters({ selectedSort, onSortChange }: StatFiltersProps) {
         <TabsTrigger value="goals">Goals</TabsTrigger>
         <TabsTrigger value="assists">Assists</TabsTrigger>
         <TabsTrigger value="cleanSheets">Clean Sheets</TabsTrigger>
+        <TabsTrigger value="manOfTheMatchAwards">MOTM</TabsTrigger>
       </TabsList>
     </Tabs>
   );

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
+import { LoadingState } from '@/components/ui/loading-spinner';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,6 +18,7 @@ import {
 import { FormationSelector, type FormationAssignment } from '../components/match/FormationSelector';
 import { LiveMatchRecorder } from '../components/match/LiveMatchRecorder';
 import { MatchEventList } from '../components/match/MatchEventList';
+import { ManOfTheMatchSelector } from '../components/match/ManOfTheMatchSelector';
 import { usePlayers } from '../hooks/usePlayers';
 import { useMatches } from '../hooks/useMatches';
 import { useAuth } from '../contexts/AuthContext';
@@ -30,7 +32,7 @@ export function NewMatch() {
   const location = useLocation();
   const { players, loading: playersLoading } = usePlayers();
   const { createMatch, updateMatch } = useMatches();
-  const { isAdmin } = useAuth();
+  const { isAdmin, loading: authLoading, user } = useAuth();
   const { toast } = useToast();
 
   const [step, setStep] = useState<Step>('setup');
@@ -62,7 +64,44 @@ export function NewMatch() {
   const [yellowScore, setYellowScore] = useState(0);
   const [redScore, setRedScore] = useState(0);
   const [events, setEvents] = useState<MatchEvent[]>([]);
+  const [manOfTheMatch, setManOfTheMatch] = useState<string | undefined>(undefined);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [guestCache, setGuestCache] = useState<Map<string, Player>>(new Map());
+
+  // Merge players with cached guests
+  const getAllPlayers = (): Player[] => {
+    const cachedGuests = Array.from(guestCache.values());
+    const propPlayerIds = new Set(players.map(p => p.id));
+    const uniqueCachedGuests = cachedGuests.filter(g => !propPlayerIds.has(g.id));
+    return [...players, ...uniqueCachedGuests];
+  };
+
+  // Clean up guest cache when guests appear in props
+  useEffect(() => {
+    if (guestCache.size === 0) return;
+
+    const playerIds = new Set(players.map(p => p.id));
+    const idsToRemove: string[] = [];
+
+    guestCache.forEach((guest, id) => {
+      if (playerIds.has(id)) {
+        idsToRemove.push(id);
+      }
+    });
+
+    if (idsToRemove.length > 0) {
+      setGuestCache(prev => {
+        const next = new Map(prev);
+        idsToRemove.forEach(id => next.delete(id));
+        return next;
+      });
+    }
+  }, [players, guestCache]);
+
+  // Handler for when a guest is created
+  const handleGuestCreated = (player: Player) => {
+    setGuestCache(prev => new Map(prev).set(player.id, player));
+  };
 
   // Extract player IDs from formations
   const yellowPlayerIds = Object.values(yellowFormation).filter((id): id is string => id !== null);
@@ -94,10 +133,11 @@ export function NewMatch() {
     setHasUnsavedChanges(true);
   };
 
-  const handleAddOwnGoal = (team: TeamColor, playerId: string) => {
+  const handleAddOwnGoal = (team: TeamColor, playerId: string, assistId?: string) => {
     const event: MatchEvent = {
       type: 'own-goal',
       playerId,
+      ...(assistId && { assistPlayerId: assistId }),
       team,
       timestamp: new Date().toISOString(),
     };
@@ -178,6 +218,7 @@ export function NewMatch() {
       yellowTeam: { ...match.yellowTeam, score: yellowScore },
       redTeam: { ...match.redTeam, score: redScore },
       events: allEvents,
+      manOfTheMatch: manOfTheMatch,
     });
 
     if (success) {
@@ -208,6 +249,7 @@ export function NewMatch() {
     setYellowScore(0);
     setRedScore(0);
     setEvents([]);
+    setManOfTheMatch(undefined);
     setHasUnsavedChanges(false);
     setStep('setup');
   };
@@ -224,6 +266,7 @@ export function NewMatch() {
     setYellowScore(0);
     setRedScore(0);
     setEvents([]);
+    setManOfTheMatch(undefined);
     setHasUnsavedChanges(false);
     setStep('setup');
   };
@@ -233,14 +276,16 @@ export function NewMatch() {
     setYellowScore(0);
     setRedScore(0);
     setEvents([]);
+    setManOfTheMatch(undefined);
     setHasUnsavedChanges(false);
     setStep('setup');
     setConfirmDialogOpen(false);
     setConfirmAction(null);
   };
 
-  const yellowPlayers = players.filter(p => yellowPlayerIds.includes(p.id));
-  const redPlayers = players.filter(p => redPlayerIds.includes(p.id));
+  const allPlayers = getAllPlayers();
+  const yellowPlayers = allPlayers.filter(p => yellowPlayerIds.includes(p.id));
+  const redPlayers = allPlayers.filter(p => redPlayerIds.includes(p.id));
 
   // Warn about unsaved changes when navigating away
   useEffect(() => {
@@ -256,7 +301,35 @@ export function NewMatch() {
   }, [hasUnsavedChanges]);
 
   // Check admin access
-  if (!isAdmin) {
+  // Key insight: if user exists, they're logged in - never show login page even if profile hasn't loaded
+  // Only show loading if we're waiting for the session to load
+  if (authLoading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">New Match</h1>
+          <p className="text-muted-foreground">Record a new football match</p>
+        </div>
+        <LoadingState message="Checking authentication" />
+      </div>
+    );
+  }
+
+  // If user is logged in but profile hasn't loaded yet, show brief loading
+  if (user && !isAdmin) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">New Match</h1>
+          <p className="text-muted-foreground">Record a new football match</p>
+        </div>
+        <LoadingState message="Loading profile" />
+      </div>
+    );
+  }
+
+  // Only show login if definitely not logged in
+  if (!user) {
     return (
       <div className="space-y-6">
         <div>
@@ -291,9 +364,7 @@ export function NewMatch() {
           <h1 className="text-3xl font-bold tracking-tight">New Match</h1>
           <p className="text-muted-foreground">Record a new football match</p>
         </div>
-        <div className="flex items-center justify-center h-64">
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
+        <LoadingState message="Preparing match setup..." />
       </div>
     );
   }
@@ -358,6 +429,7 @@ export function NewMatch() {
               formation={yellowFormation}
               excludePlayerIds={redPlayerIds}
               onFormationChange={setYellowFormation}
+              onGuestCreated={handleGuestCreated}
             />
             <FormationSelector
               team="red"
@@ -365,6 +437,7 @@ export function NewMatch() {
               formation={redFormation}
               excludePlayerIds={yellowPlayerIds}
               onFormationChange={setRedFormation}
+              onGuestCreated={handleGuestCreated}
             />
           </div>
 
@@ -396,7 +469,23 @@ export function NewMatch() {
           {/* Match Events */}
           <div className="space-y-3">
             <h2 className="text-lg font-semibold">Match Events</h2>
-            <MatchEventList events={events} players={players} />
+            <MatchEventList events={events} players={allPlayers} />
+          </div>
+
+          {/* Man of the Match Selection */}
+          <div className="space-y-3">
+            <h2 className="text-lg font-semibold">Finalize Match</h2>
+            <Card>
+              <CardContent className="pt-6">
+                <ManOfTheMatchSelector
+                  players={allPlayers}
+                  yellowPlayerIds={yellowPlayerIds}
+                  redPlayerIds={redPlayerIds}
+                  selectedMotm={manOfTheMatch}
+                  onMotmChange={setManOfTheMatch}
+                />
+              </CardContent>
+            </Card>
           </div>
 
           {/* Actions */}

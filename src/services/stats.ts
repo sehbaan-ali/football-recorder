@@ -1,24 +1,27 @@
-import type { Match, Player, PlayerStats, TeamColor } from '../types';
+import type { Match, Player, PlayerStats, TeamColor, SortBy } from '../types';
 
 export class StatsService {
   static calculatePlayerStats(players: Player[], matches: Match[]): PlayerStats[] {
     const statsMap = new Map<string, PlayerStats>();
 
-    // Initialize stats for all players
-    players.forEach(player => {
-      statsMap.set(player.id, {
-        playerId: player.id,
-        playerName: player.name,
-        matchesPlayed: 0,
-        wins: 0,
-        losses: 0,
-        draws: 0,
-        goals: 0,
-        assists: 0,
-        ownGoals: 0,
-        cleanSheets: 0,
+    // Initialize stats for all NON-GUEST players only
+    players
+      .filter(player => !player.isGuest)
+      .forEach(player => {
+        statsMap.set(player.id, {
+          playerId: player.id,
+          playerName: player.name,
+          matchesPlayed: 0,
+          wins: 0,
+          losses: 0,
+          draws: 0,
+          goals: 0,
+          assists: 0,
+          ownGoals: 0,
+          cleanSheets: 0,
+          manOfTheMatchAwards: 0,
+        });
       });
-    });
 
     // Process each match
     matches.forEach(match => {
@@ -70,25 +73,43 @@ export class StatsService {
             break;
           case 'own-goal':
             stats.ownGoals++;
+            // Process assist if present (attacking player whose action forced the own goal)
+            if (event.assistPlayerId) {
+              const assistStats = statsMap.get(event.assistPlayerId);
+              if (assistStats) {
+                assistStats.assists++;
+              }
+            }
             break;
           case 'clean-sheet':
             stats.cleanSheets++;
             break;
         }
       });
+
+      // Count Man of the Match awards
+      if (match.manOfTheMatch) {
+        const motmStats = statsMap.get(match.manOfTheMatch);
+        if (motmStats) {
+          motmStats.manOfTheMatchAwards++;
+        }
+      }
     });
 
     return Array.from(statsMap.values());
   }
 
-  static getTopPlayers(stats: PlayerStats[], sortBy: 'wins' | 'goals' | 'assists' | 'cleanSheets', limit: number = 10): PlayerStats[] {
+  static getTopPlayers(stats: PlayerStats[], sortBy: SortBy, limit: number = 10, direction: 'asc' | 'desc' = 'desc'): PlayerStats[] {
     return [...stats]
       .sort((a, b) => {
-        const aValue = a[sortBy];
-        const bValue = b[sortBy];
+        const aValue = a[sortBy] as number;
+        const bValue = b[sortBy] as number;
+
         if (bValue !== aValue) {
-          return bValue - aValue;
+          // Sort in the specified direction
+          return direction === 'desc' ? bValue - aValue : aValue - bValue;
         }
+
         // Tiebreaker: matches played (ascending - fewer matches played wins)
         return a.matchesPlayed - b.matchesPlayed;
       })

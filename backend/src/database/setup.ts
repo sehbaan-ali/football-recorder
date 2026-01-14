@@ -28,13 +28,15 @@ export async function setupDatabase() {
       red_team_player_ids TEXT NOT NULL,
       red_team_score INTEGER NOT NULL,
       events TEXT NOT NULL,
-      created_at TEXT NOT NULL
+      created_at TEXT NOT NULL,
+      man_of_the_match TEXT
     )
   `);
 
   // Create indexes for better query performance
   db.run(`CREATE INDEX IF NOT EXISTS idx_players_archived ON players(archived)`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_matches_date ON matches(date)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_matches_motm ON matches(man_of_the_match)`);
 
   // Save database to disk
   saveDatabase();

@@ -2,22 +2,8 @@ import { useState } from 'react';
 import { Trophy, Undo2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
+import { AddGoalDialog } from './AddGoalDialog';
+import { AddOwnGoalDialog } from './AddOwnGoalDialog';
 import type { Player, TeamColor } from '../../types';
 
 interface LiveMatchRecorderProps {
@@ -26,7 +12,7 @@ interface LiveMatchRecorderProps {
   yellowScore: number;
   redScore: number;
   onAddGoal: (team: TeamColor, scorerId: string, assistId?: string) => void;
-  onAddOwnGoal: (team: TeamColor, playerId: string) => void;
+  onAddOwnGoal: (team: TeamColor, playerId: string, assistId?: string) => void;
   onUndo: () => void;
   canUndo: boolean;
 }
@@ -41,48 +27,35 @@ export function LiveMatchRecorder({
   onUndo,
   canUndo,
 }: LiveMatchRecorderProps) {
-  const [goalDialogOpen, setGoalDialogOpen] = useState(false);
-  const [ownGoalDialogOpen, setOwnGoalDialogOpen] = useState(false);
-  const [selectedTeam, setSelectedTeam] = useState<TeamColor>('yellow');
-  const [selectedScorer, setSelectedScorer] = useState('');
-  const [selectedAssist, setSelectedAssist] = useState('');
+  const [goalDialogState, setGoalDialogState] = useState<{ team: TeamColor; open: boolean }>({
+    team: 'yellow',
+    open: false,
+  });
+  const [ownGoalDialogState, setOwnGoalDialogState] = useState<{ team: TeamColor; open: boolean }>({
+    team: 'yellow',
+    open: false,
+  });
 
-  const handleAddGoal = () => {
-    if (selectedScorer) {
-      onAddGoal(
-        selectedTeam,
-        selectedScorer,
-        selectedAssist || undefined
-      );
-      setSelectedScorer('');
-      setSelectedAssist('');
-      setGoalDialogOpen(false);
-    }
+  const handleGoalAdded = (scorerId: string, assistId?: string) => {
+    onAddGoal(goalDialogState.team, scorerId, assistId);
+    setGoalDialogState({ ...goalDialogState, open: false });
   };
 
-  const handleAddOwnGoal = () => {
-    if (selectedScorer) {
-      onAddOwnGoal(selectedTeam, selectedScorer);
-      setSelectedScorer('');
-      setOwnGoalDialogOpen(false);
-    }
+  const handleOwnGoalAdded = (playerId: string, assistId?: string) => {
+    onAddOwnGoal(ownGoalDialogState.team, playerId, assistId);
+    setOwnGoalDialogState({ ...ownGoalDialogState, open: false });
   };
 
   const openGoalDialog = (team: TeamColor) => {
-    setSelectedTeam(team);
-    setSelectedScorer('');
-    setSelectedAssist('');
-    setGoalDialogOpen(true);
+    setGoalDialogState({ team, open: true });
   };
 
   const openOwnGoalDialog = (team: TeamColor) => {
-    setSelectedTeam(team);
-    setSelectedScorer('');
-    setOwnGoalDialogOpen(true);
+    setOwnGoalDialogState({ team, open: true });
   };
 
-  const currentTeamPlayers = selectedTeam === 'yellow' ? yellowPlayers : redPlayers;
-  const dialogTeamName = selectedTeam === 'yellow' ? 'Yellow' : 'Red';
+  const currentGoalTeamPlayers = goalDialogState.team === 'yellow' ? yellowPlayers : redPlayers;
+  const currentOwnGoalTeamPlayers = ownGoalDialogState.team === 'yellow' ? yellowPlayers : redPlayers;
 
   return (
     <div className="space-y-6">
@@ -175,115 +148,23 @@ export function LiveMatchRecorder({
       </Button>
 
       {/* Goal Dialog */}
-      <Dialog open={goalDialogOpen} onOpenChange={setGoalDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add Goal - {dialogTeamName} Team</DialogTitle>
-            <DialogDescription>
-              Record a goal for the {dialogTeamName.toLowerCase()} team
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="scorer">
-                Scorer <span className="text-destructive">*</span>
-              </Label>
-              <Select value={selectedScorer} onValueChange={setSelectedScorer}>
-                <SelectTrigger id="scorer">
-                  <SelectValue placeholder="Select scorer" />
-                </SelectTrigger>
-                <SelectContent>
-                  {currentTeamPlayers.map(player => (
-                    <SelectItem key={player.id} value={player.id}>
-                      {player.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="assist">Assist (optional)</Label>
-              <Select value={selectedAssist || '__NONE__'} onValueChange={(value) => setSelectedAssist(value === '__NONE__' ? '' : value)}>
-                <SelectTrigger id="assist">
-                  <SelectValue placeholder="Select assist provider" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__NONE__">No assist</SelectItem>
-                  {currentTeamPlayers
-                    .filter(p => p.id !== selectedScorer)
-                    .map(player => (
-                      <SelectItem key={player.id} value={player.id}>
-                        {player.name}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setGoalDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleAddGoal}
-              disabled={!selectedScorer}
-            >
-              Add Goal
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <AddGoalDialog
+        open={goalDialogState.open}
+        onClose={() => setGoalDialogState({ ...goalDialogState, open: false })}
+        players={currentGoalTeamPlayers}
+        team={goalDialogState.team}
+        onAddGoal={handleGoalAdded}
+      />
 
       {/* Own Goal Dialog */}
-      <Dialog open={ownGoalDialogOpen} onOpenChange={setOwnGoalDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add Own Goal - {dialogTeamName} Team</DialogTitle>
-            <DialogDescription>
-              Record an own goal scored by a {dialogTeamName.toLowerCase()} team player
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="own-goal-player">
-                Player who scored own goal <span className="text-destructive">*</span>
-              </Label>
-              <Select value={selectedScorer} onValueChange={setSelectedScorer}>
-                <SelectTrigger id="own-goal-player">
-                  <SelectValue placeholder="Select player" />
-                </SelectTrigger>
-                <SelectContent>
-                  {currentTeamPlayers.map(player => (
-                    <SelectItem key={player.id} value={player.id}>
-                      {player.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOwnGoalDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleAddOwnGoal}
-              disabled={!selectedScorer}
-            >
-              Add Own Goal
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <AddOwnGoalDialog
+        open={ownGoalDialogState.open}
+        onClose={() => setOwnGoalDialogState({ ...ownGoalDialogState, open: false })}
+        players={currentOwnGoalTeamPlayers}
+        opposingPlayers={ownGoalDialogState.team === 'yellow' ? redPlayers : yellowPlayers}
+        team={ownGoalDialogState.team}
+        onAddOwnGoal={handleOwnGoalAdded}
+      />
     </div>
   );
 }

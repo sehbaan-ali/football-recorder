@@ -8,7 +8,7 @@ type ThemeOption = 'light' | 'dark' | 'system';
 export function Settings() {
   const { setTheme } = useTheme();
   const [selectedTheme, setSelectedTheme] = useState<ThemeOption>(
-    localStorage.getItem('theme-preference') as ThemeOption || 'light'
+    localStorage.getItem('theme-preference') as ThemeOption || 'system'
   );
 
   const handleThemeChange = (newTheme: ThemeOption) => {

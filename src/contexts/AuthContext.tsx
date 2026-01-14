@@ -32,8 +32,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Fetch user profile (including role)
   const fetchProfile = async (userId: string) => {
     try {
-      console.log('Fetching profile for user ID:', userId);
-
       const fetchPromise = supabase
         .from('user_profiles')
         .select('*')
@@ -56,7 +54,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return null;
       }
 
-      console.log('Profile fetched successfully:', data);
       return data as UserProfile;
     } catch (err) {
       console.error('Exception fetching profile:', err);
@@ -82,14 +79,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      console.log('Auth state changed:', _event);
       setSession(session);
       setUser(session?.user ?? null);
 
       if (session?.user) {
         // Don't await - fetch in background to prevent blocking
         fetchProfile(session.user.id).then(profile => {
-          console.log('Setting profile from auth change:', profile);
           setProfile(profile);
         });
       } else {
@@ -133,13 +128,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin';
   const isSuperAdmin = profile?.role === 'super_admin';
-
-  console.log('Auth State:', {
-    userId: user?.id,
-    profileRole: profile?.role,
-    isAdmin,
-    isSuperAdmin
-  });
 
   const value = {
     user,

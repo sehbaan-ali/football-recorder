@@ -1,15 +1,17 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Users, Plus, Trophy, Settings } from 'lucide-react';
+import { Home, Users, Plus, Trophy, Calendar, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '../../contexts/AuthContext';
 
 export function MobileNav() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isAdmin } = useAuth();
 
   const navItems = [
     { icon: Home, label: 'Home', path: '/' },
     { icon: Users, label: 'Players', path: '/players' },
-    { icon: Plus, label: 'Match', path: '/match/new' },
+    ...(isAdmin ? [{ icon: Plus, label: 'Match', path: '/match/new' }] : []),
     { icon: Trophy, label: 'Board', path: '/leaderboard' },
     { icon: Settings, label: 'Settings', path: '/settings' },
   ];

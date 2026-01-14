@@ -31,6 +31,7 @@ export interface GoalEvent {
 export interface OwnGoalEvent {
   type: 'own-goal';
   playerId: string;
+  assistPlayerId?: string;
   team: TeamColor;
   timestamp: string;
 }

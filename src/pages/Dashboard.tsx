@@ -4,6 +4,7 @@ import { Plus, Trophy, Target, Users, Award } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { LoadingState } from '@/components/ui/loading-spinner';
 import { MatchCard } from '../components/match/MatchCard';
 import { MatchDetailsModal } from '../components/match/MatchDetailsModal';
 import { usePlayers } from '../hooks/usePlayers';
@@ -82,7 +83,7 @@ export function Dashboard() {
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
   const { players, loading: playersLoading } = usePlayers();
-  const { matches, deleteMatch, loading: matchesLoading } = useMatches();
+  const { matches, deleteMatch, updateMatch, loading: matchesLoading } = useMatches();
   const { playerStats } = useStats(players, matches);
   const { toast } = useToast();
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
@@ -97,11 +98,7 @@ export function Dashboard() {
   const topByWins = StatsService.getTopPlayers(playerStats, 'wins', 3);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground">Loading...</p>
-      </div>
-    );
+    return <LoadingState message="Loading dashboard" />;
   }
 
   if (totalPlayers === 0) {
@@ -228,6 +225,7 @@ export function Dashboard() {
                   >
                     <MatchCard
                       match={match}
+                      players={players}
                       onClick={() => setSelectedMatch(match)}
                     />
                   </motion.div>
@@ -347,6 +345,23 @@ export function Dashboard() {
             description: "Match deleted successfully!",
           });
           setSelectedMatch(null);
+        }}
+        onEdit={async (matchId, updates) => {
+          const success = await updateMatch(matchId, updates);
+          if (success) {
+            toast({
+              title: "Success",
+              description: "Match updated successfully!",
+            });
+            return true;
+          } else {
+            toast({
+              title: "Error",
+              description: "Failed to update match. Please try again.",
+              variant: "destructive",
+            });
+            return false;
+          }
         }}
         isAdmin={isAdmin}
       />

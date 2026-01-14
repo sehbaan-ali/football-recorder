@@ -33,7 +33,6 @@ export function useMatches() {
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'matches' },
         (payload) => {
-          console.log('Match inserted:', payload.new);
           const newMatch = payload.new as Match;
           setMatches(prev => {
             // Check if already exists to prevent duplicates
@@ -48,7 +47,6 @@ export function useMatches() {
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'matches' },
         (payload) => {
-          console.log('Match updated:', payload.new);
           setMatches(prev =>
             prev.map(match =>
               match.id === (payload.new as Match).id ? (payload.new as Match) : match
@@ -60,7 +58,6 @@ export function useMatches() {
         'postgres_changes',
         { event: 'DELETE', schema: 'public', table: 'matches' },
         (payload) => {
-          console.log('Match deleted:', payload.old);
           setMatches(prev => prev.filter(match => match.id !== (payload.old as Match).id));
         }
       )

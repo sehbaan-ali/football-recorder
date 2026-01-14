@@ -1,7 +1,7 @@
 import { Circle, ArrowRight } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import type { Player, MatchEvent, GoalEvent } from '../../types';
+import type { Player, MatchEvent } from '../../types';
 import { getPlayerName } from '../../utils/helpers';
 import { cn } from '@/lib/utils';
 
@@ -41,14 +41,23 @@ export function MatchEventList({ events, players }: MatchEventListProps) {
     return Array.from(playerGoalCount.entries());
   };
 
-  // Aggregate assists by player and team
+  // Aggregate assists by player and team (includes assists from regular goals and own goals)
   const aggregateAssists = (team: 'yellow' | 'red') => {
-    const assists = displayEvents.filter((e): e is GoalEvent => e.team === team && e.type === 'goal' && !!e.assistPlayerId);
     const playerAssistCount = new Map<string, number>();
 
-    assists.forEach(assist => {
-      const playerId = assist.assistPlayerId!;
-      playerAssistCount.set(playerId, (playerAssistCount.get(playerId) || 0) + 1);
+    displayEvents.forEach(event => {
+      if (!event.assistPlayerId) return;
+
+      // For regular goals: assist is from the same team
+      // For own goals: assist is from the opposing team (who forced the own goal)
+      const assistTeamMatch = event.type === 'goal'
+        ? event.team === team
+        : event.team !== team; // For own goals, opposing team gets the assist
+
+      if (assistTeamMatch) {
+        const playerId = event.assistPlayerId;
+        playerAssistCount.set(playerId, (playerAssistCount.get(playerId) || 0) + 1);
+      }
     });
 
     return Array.from(playerAssistCount.entries());

@@ -1,4 +1,5 @@
-import { Sparkles } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Sparkles, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import {
@@ -10,6 +11,8 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { GuestPlayerForm } from './GuestPlayerForm';
 import type { Player, TeamColor, PlayerPosition } from '../../types';
 import { cn } from '@/lib/utils';
 
@@ -59,6 +62,7 @@ interface FormationSelectorProps {
   formation: FormationAssignment;
   excludePlayerIds: string[];
   onFormationChange: (formation: FormationAssignment) => void;
+  onGuestCreated?: (player: Player) => void;
 }
 
 export function FormationSelector({
@@ -67,7 +71,45 @@ export function FormationSelector({
   formation,
   excludePlayerIds,
   onFormationChange,
+  onGuestCreated,
 }: FormationSelectorProps) {
+  const [showGuestForm, setShowGuestForm] = useState<{ slotId: string; position: PlayerPosition } | null>(null);
+  const [guestCache, setGuestCache] = useState<Map<string, Player>>(new Map());
+  const [searchQuery, setSearchQuery] = useState<string>('');
+
+  // Merge players prop with cached guests for immediate display
+  const getAllPlayers = (): Player[] => {
+    const cachedGuests = Array.from(guestCache.values());
+    const propPlayerIds = new Set(players.map(p => p.id));
+
+    // Only include cached guests that aren't in props yet
+    const uniqueCachedGuests = cachedGuests.filter(g => !propPlayerIds.has(g.id));
+
+    return [...players, ...uniqueCachedGuests];
+  };
+
+  // Clean up guest cache when guests appear in props
+  useEffect(() => {
+    if (guestCache.size === 0) return;
+
+    const playerIds = new Set(players.map(p => p.id));
+    const idsToRemove: string[] = [];
+
+    guestCache.forEach((guest, id) => {
+      if (playerIds.has(id)) {
+        idsToRemove.push(id);
+      }
+    });
+
+    if (idsToRemove.length > 0) {
+      setGuestCache(prev => {
+        const next = new Map(prev);
+        idsToRemove.forEach(id => next.delete(id));
+        return next;
+      });
+    }
+  }, [players, guestCache]);
+
   const teamTextColor = team === 'yellow'
     ? 'text-yellow-700 dark:text-yellow-400'
     : 'text-red-700 dark:text-red-400';
@@ -81,31 +123,66 @@ export function FormationSelector({
   const filledSlots = assignedPlayerIds.length;
   const totalSlots = FORMATION_SLOTS.length;
 
-  // Get available players for a specific slot
-  const getAvailablePlayers = (currentSlotId: string) => {
+  // Get available players for a specific slot, with preferred position first
+  const getAvailablePlayers = (currentSlotId: string, preferredPosition: PlayerPosition) => {
     const currentPlayerId = formation[currentSlotId];
-    return players
+    const allPlayers = getAllPlayers();
+    return allPlayers
       .filter(p =>
+        !p.isGuest && // Exclude guest players from dropdown
         !excludePlayerIds.includes(p.id) &&
-        (!assignedPlayerIds.includes(p.id) || p.id === currentPlayerId)
+        (!assignedPlayerIds.includes(p.id) || p.id === currentPlayerId) &&
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) // Filter by search query
       )
       .sort((a, b) => {
+        // First, prioritize players matching the slot's preferred position
+        const aMatchesSlot = a.position === preferredPosition;
+        const bMatchesSlot = b.position === preferredPosition;
+        if (aMatchesSlot && !bMatchesSlot) return -1;
+        if (!aMatchesSlot && bMatchesSlot) return 1;
+
+        // Then sort by position order
         const positionDiff = POSITION_ORDER[a.position] - POSITION_ORDER[b.position];
         if (positionDiff !== 0) return positionDiff;
+
+        // Finally sort by name
         return a.name.localeCompare(b.name);
       });
   };
 
-  const handleSlotChange = (slotId: string, playerId: string | null) => {
+  const handleSlotChange = (slotId: string, slotPosition: PlayerPosition, playerId: string | null) => {
+    if (playerId === '__ADD_GUEST__') {
+      setShowGuestForm({ slotId, position: slotPosition });
+      return;
+    }
+
     onFormationChange({
       ...formation,
       [slotId]: playerId,
     });
   };
 
+  const handleGuestCreated = (player: Player) => {
+    if (showGuestForm) {
+      // Add guest to cache for immediate display
+      setGuestCache(prev => new Map(prev).set(player.id, player));
+
+      // Notify parent about guest creation
+      onGuestCreated?.(player);
+
+      // Update formation with guest ID
+      onFormationChange({
+        ...formation,
+        [showGuestForm.slotId]: player.id,
+      });
+    }
+    setShowGuestForm(null);
+  };
+
   const handleAutoAssign = () => {
     const newFormation: FormationAssignment = {};
-    const availablePlayers = players.filter(p => !excludePlayerIds.includes(p.id));
+    const allPlayers = getAllPlayers();
+    const availablePlayers = allPlayers.filter(p => !p.isGuest && !excludePlayerIds.includes(p.id));
     const unassignedPlayers = [...availablePlayers];
 
     // First pass: Assign players to their natural positions
@@ -131,11 +208,20 @@ export function FormationSelector({
     onFormationChange(newFormation);
   };
 
+  const handleClearTeam = () => {
+    const clearedFormation: FormationAssignment = {};
+    FORMATION_SLOTS.forEach(slot => {
+      clearedFormation[slot.id] = null;
+    });
+    onFormationChange(clearedFormation);
+  };
+
   const renderSlot = (slot: typeof FORMATION_SLOTS[number]) => {
     const playerId = formation[slot.id];
-    const player = playerId ? players.find(p => p.id === playerId) : null;
+    const allPlayers = getAllPlayers();
+    const player = playerId ? allPlayers.find(p => p.id === playerId) : null;
     const isOutOfPosition = player && player.position !== slot.position;
-    const availablePlayers = getAvailablePlayers(slot.id);
+    const availablePlayers = getAvailablePlayers(slot.id, slot.position);
 
     return (
       <div key={slot.id} className="w-24 sm:w-36 space-y-1">
@@ -150,27 +236,54 @@ export function FormationSelector({
             </Badge>
           )}
         </Label>
+
         <Select
           value={playerId || '__NONE__'}
-          onValueChange={(value) => handleSlotChange(slot.id, value === '__NONE__' ? null : value)}
+          onValueChange={(value) => {
+            handleSlotChange(slot.id, slot.position, value === '__NONE__' ? null : value);
+            setSearchQuery(''); // Clear search on selection
+          }}
+          onOpenChange={(open) => {
+            if (!open) setSearchQuery(''); // Clear search when dropdown closes
+          }}
         >
           <SelectTrigger id={`slot-${slot.id}`} className="h-8 text-xs w-full">
             <SelectValue placeholder="Select">
               {player ? player.name : 'Select'}
             </SelectValue>
           </SelectTrigger>
-          <SelectContent position="popper" sideOffset={4} className="max-h-[300px]">
-            <SelectItem value="__NONE__">Clear</SelectItem>
+          <SelectContent position="popper" sideOffset={4} className="scrollbar-dropdown">
+            <div className="sticky top-0 left-0 right-0 bg-popover z-20 border-b border-border p-2">
+              <Input
+                placeholder="Search players..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-8 text-xs"
+                onKeyDown={(e) => e.stopPropagation()} // Prevent dropdown from closing on key press
+              />
+            </div>
+            <div className="max-h-[250px] overflow-y-auto p-1 dropdown-scroll">
+              <SelectItem value="__NONE__">Clear</SelectItem>
+            <SelectItem value="__ADD_GUEST__" className="text-primary">
+              + Add Guest Player...
+            </SelectItem>
+            <div className="border-t my-1" />
             {availablePlayers.map(p => (
               <SelectItem key={p.id} value={p.id}>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs">{p.name}</span>
-                  <Badge className={cn("text-[10px] px-1 py-0", getPositionBadgeColor(p.position))}>
+                <div className="flex items-center gap-2 overflow-hidden">
+                  <span className="text-xs truncate">{p.name}</span>
+                  <Badge className={cn("text-[10px] px-1 py-0 shrink-0", getPositionBadgeColor(p.position))}>
                     {p.position}
                   </Badge>
                 </div>
               </SelectItem>
             ))}
+              {availablePlayers.length === 0 && searchQuery && (
+                <div className="px-2 py-4 text-center text-xs text-muted-foreground">
+                  No players found
+                </div>
+              )}
+            </div>
           </SelectContent>
         </Select>
       </div>
@@ -188,66 +301,90 @@ export function FormationSelector({
   });
 
   return (
-    <Card>
-      <CardHeader className="pb-2 pt-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className={cn("text-sm font-medium", teamTextColor)}>
-              {teamName}
+    <>
+      <Card>
+        <CardHeader className="pb-2 pt-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className={cn("text-sm font-medium", teamTextColor)}>
+                {teamName}
+              </div>
+              <span className="text-xs text-muted-foreground">
+                {filledSlots}/{totalSlots}
+              </span>
             </div>
-            <span className="text-xs text-muted-foreground">
-              {filledSlots}/{totalSlots}
-            </span>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClearTeam}
+                className="gap-1.5 h-7 text-xs"
+                disabled={filledSlots === 0}
+              >
+                <X className="h-3 w-3" />
+                Clear
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleAutoAssign}
+                className="gap-1.5 h-7 text-xs"
+              >
+                <Sparkles className="h-3 w-3" />
+                Auto
+              </Button>
+            </div>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleAutoAssign}
-            className="gap-1.5 h-7 text-xs"
-          >
-            <Sparkles className="h-3 w-3" />
-            Auto
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent className="pb-4 pt-2">
-        <div className="space-y-2.5">
-          {/* GK Row - centered */}
-          {slotsByRow[1] && (
-            <div className="flex justify-center gap-1 sm:gap-2">
-              {slotsByRow[1].map(slot => renderSlot(slot))}
-            </div>
-          )}
+        </CardHeader>
+        <CardContent className="pb-4 pt-2">
+          <div className="space-y-2.5">
+            {/* GK Row - centered */}
+            {slotsByRow[1] && (
+              <div className="flex justify-center gap-1 sm:gap-2">
+                {slotsByRow[1].map(slot => renderSlot(slot))}
+              </div>
+            )}
 
-          {/* DEF Row - spread across */}
-          {slotsByRow[2] && (
-            <div className="flex justify-between gap-1 sm:gap-2 px-1 sm:px-4">
-              {slotsByRow[2].map(slot => renderSlot(slot))}
-            </div>
-          )}
+            {/* DEF Row - spread across */}
+            {slotsByRow[2] && (
+              <div className="flex justify-between gap-1 sm:gap-2 px-1 sm:px-4">
+                {slotsByRow[2].map(slot => renderSlot(slot))}
+              </div>
+            )}
 
-          {/* MID Row - centered together */}
-          {slotsByRow[3] && (
-            <div className="flex justify-center gap-1 sm:gap-2">
-              {slotsByRow[3].map(slot => renderSlot(slot))}
-            </div>
-          )}
+            {/* MID Row - centered together */}
+            {slotsByRow[3] && (
+              <div className="flex justify-center gap-1 sm:gap-2">
+                {slotsByRow[3].map(slot => renderSlot(slot))}
+              </div>
+            )}
 
-          {/* WING Row - left and right */}
-          {slotsByRow[4] && (
-            <div className="flex justify-between gap-1 sm:gap-2 px-1 sm:px-4">
-              {slotsByRow[4].map(slot => renderSlot(slot))}
-            </div>
-          )}
+            {/* WING Row - left and right */}
+            {slotsByRow[4] && (
+              <div className="flex justify-between gap-1 sm:gap-2 px-1 sm:px-4">
+                {slotsByRow[4].map(slot => renderSlot(slot))}
+              </div>
+            )}
 
-          {/* ST Row - centered */}
-          {slotsByRow[5] && (
-            <div className="flex justify-center gap-1 sm:gap-2">
-              {slotsByRow[5].map(slot => renderSlot(slot))}
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+            {/* ST Row - centered */}
+            {slotsByRow[5] && (
+              <div className="flex justify-center gap-1 sm:gap-2">
+                {slotsByRow[5].map(slot => renderSlot(slot))}
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Guest Player Form Dialog */}
+      {showGuestForm && (
+        <GuestPlayerForm
+          position={showGuestForm.position}
+          open={!!showGuestForm}
+          onGuestCreated={handleGuestCreated}
+          onCancel={() => setShowGuestForm(null)}
+        />
+      )}
+    </>
   );
 }
