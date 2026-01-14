@@ -44,22 +44,33 @@ interface AddOwnGoalDialogProps {
   opposingPlayers: Player[];
   team: TeamColor;
   onAddOwnGoal: (playerId: string, assistId?: string) => void;
+  initialPlayerId?: string;
+  initialAssistId?: string;
 }
 
-export function AddOwnGoalDialog({ open, onClose, players, opposingPlayers, team, onAddOwnGoal }: AddOwnGoalDialogProps) {
+export function AddOwnGoalDialog({
+  open,
+  onClose,
+  players,
+  opposingPlayers,
+  team,
+  onAddOwnGoal,
+  initialPlayerId,
+  initialAssistId
+}: AddOwnGoalDialogProps) {
   const [selectedPlayer, setSelectedPlayer] = useState('');
   const [selectedAssist, setSelectedAssist] = useState('__NONE__');
 
   const teamName = team === 'yellow' ? 'Yellow' : 'Red';
   const opposingTeamName = team === 'yellow' ? 'Red' : 'Yellow';
 
-  // Reset selection when dialog opens
+  // Set initial values or reset when dialog opens
   useEffect(() => {
     if (open) {
-      setSelectedPlayer('');
-      setSelectedAssist('__NONE__');
+      setSelectedPlayer(initialPlayerId || '');
+      setSelectedAssist(initialAssistId || '__NONE__');
     }
-  }, [open]);
+  }, [open, initialPlayerId, initialAssistId]);
 
   const handleAddOwnGoal = () => {
     if (!selectedPlayer) return;

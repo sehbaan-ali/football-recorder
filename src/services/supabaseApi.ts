@@ -231,7 +231,7 @@ export const matchApi = {
 
     if (error) throw new Error(error.message);
 
-    return {
+    const updatedMatch = {
       id: data.id,
       date: data.date,
       yellowTeam: {
@@ -246,6 +246,8 @@ export const matchApi = {
       createdAt: data.created_at,
       manOfTheMatch: data.man_of_the_match || undefined,
     };
+
+    return updatedMatch;
   },
 
   async delete(id: string): Promise<void> {

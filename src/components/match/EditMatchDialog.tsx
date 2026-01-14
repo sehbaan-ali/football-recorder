@@ -61,12 +61,32 @@ export function EditMatchDialog({
   const [manOfTheMatch, setManOfTheMatch] = useState(match.manOfTheMatch);
   const [saving, setSaving] = useState(false);
 
+  // Store original state for change detection
+  const [originalState, setOriginalState] = useState({
+    date: match.date,
+    yellowPlayerIds: match.yellowTeam.playerIds,
+    redPlayerIds: match.redTeam.playerIds,
+    events: match.events.filter(e => e.type !== 'clean-sheet'),
+    manOfTheMatch: match.manOfTheMatch,
+  });
+
   // Initialize formations from match data
   useEffect(() => {
     if (open) {
+      const filteredEvents = match.events.filter(e => e.type !== 'clean-sheet');
+
       setDate(match.date);
-      setEvents(match.events.filter(e => e.type !== 'clean-sheet'));
+      setEvents(filteredEvents);
       setManOfTheMatch(match.manOfTheMatch);
+
+      // Store original state for comparison
+      setOriginalState({
+        date: match.date,
+        yellowPlayerIds: [...match.yellowTeam.playerIds],
+        redPlayerIds: [...match.redTeam.playerIds],
+        events: filteredEvents,
+        manOfTheMatch: match.manOfTheMatch,
+      });
 
       // Convert player IDs to formation assignments
       // For simplicity, we'll assign players to positions in order
@@ -108,6 +128,37 @@ export function EditMatchDialog({
   const redPlayerIds = Object.values(redFormation).filter(
     (id): id is string => id !== null
   );
+
+  // Check if any changes have been made
+  const hasChanges = () => {
+    // Check date change
+    if (date !== originalState.date) return true;
+
+    // Check team changes
+    if (yellowPlayerIds.length !== originalState.yellowPlayerIds.length) return true;
+    if (redPlayerIds.length !== originalState.redPlayerIds.length) return true;
+    if (!yellowPlayerIds.every((id, i) => id === originalState.yellowPlayerIds[i])) return true;
+    if (!redPlayerIds.every((id, i) => id === originalState.redPlayerIds[i])) return true;
+
+    // Check events changes (deep comparison)
+    if (events.length !== originalState.events.length) return true;
+    const eventsChanged = !events.every((event, i) => {
+      const origEvent = originalState.events[i];
+      if (!origEvent) return true;
+      return (
+        event.type === origEvent.type &&
+        event.playerId === origEvent.playerId &&
+        event.assistPlayerId === origEvent.assistPlayerId &&
+        event.team === origEvent.team
+      );
+    });
+    if (eventsChanged) return true;
+
+    // Check MOTM change
+    if (manOfTheMatch !== originalState.manOfTheMatch) return true;
+
+    return false;
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -154,12 +205,40 @@ export function EditMatchDialog({
 
     // Validate events reference valid players
     const allPlayerIds = new Set([...yellowPlayerIds, ...redPlayerIds]);
-    const invalidEvents = allEvents.filter(
-      e => !allPlayerIds.has(e.playerId) ||
-           (e.type === 'goal' && e.assistPlayerId && !allPlayerIds.has(e.assistPlayerId))
-    );
+    const yellowPlayerIdsSet = new Set(yellowPlayerIds);
+    const redPlayerIdsSet = new Set(redPlayerIds);
+
+    const invalidEvents = allEvents.filter(e => {
+      // Check if the player who did the action exists in the match
+      if (!allPlayerIds.has(e.playerId)) return true;
+
+      // For regular goals, assist must be from same team
+      if (e.type === 'goal' && e.assistPlayerId) {
+        const playerTeam = yellowPlayerIdsSet.has(e.playerId) ? 'yellow' : 'red';
+        const assistInYellow = yellowPlayerIdsSet.has(e.assistPlayerId);
+        const assistInRed = redPlayerIdsSet.has(e.assistPlayerId);
+
+        // Assist must be from same team as scorer
+        if (playerTeam === 'yellow' && !assistInYellow) return true;
+        if (playerTeam === 'red' && !assistInRed) return true;
+      }
+
+      // For own goals, assist must be from opposing team
+      if (e.type === 'own-goal' && e.assistPlayerId) {
+        const playerTeam = yellowPlayerIdsSet.has(e.playerId) ? 'yellow' : 'red';
+        const assistInYellow = yellowPlayerIdsSet.has(e.assistPlayerId);
+        const assistInRed = redPlayerIdsSet.has(e.assistPlayerId);
+
+        // Assist must be from opposing team
+        if (playerTeam === 'yellow' && !assistInRed) return true;
+        if (playerTeam === 'red' && !assistInYellow) return true;
+      }
+
+      return false;
+    });
 
     if (invalidEvents.length > 0) {
+      console.error('❌ Invalid events detected:', invalidEvents);
       toast({
         title: 'Invalid events detected',
         description: 'Some events reference players not in the match. Please delete these events.',
@@ -246,7 +325,7 @@ export function EditMatchDialog({
           <Button variant="outline" onClick={onClose} disabled={saving}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={saving}>
+          <Button onClick={handleSave} disabled={saving || !hasChanges()}>
             {saving ? 'Saving...' : 'Save Changes'}
           </Button>
         </DialogFooter>

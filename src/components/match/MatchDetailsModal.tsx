@@ -49,6 +49,11 @@ export function MatchDetailsModal({
 
   if (!match) return null;
 
+  // Handle matches with invalid structure
+  if (!match.yellowTeam || !match.redTeam) {
+    return null;
+  }
+
   const yellowScore = match.yellowTeam.score;
   const redScore = match.redTeam.score;
 

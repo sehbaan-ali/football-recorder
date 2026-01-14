@@ -13,7 +13,6 @@ import { useStats } from '../hooks/useStats';
 import { StatsService } from '../services/stats';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../hooks/use-toast';
-import type { Match } from '../types';
 
 // Animation variants
 const containerVariants = {
@@ -86,7 +85,12 @@ export function Dashboard() {
   const { matches, deleteMatch, updateMatch, loading: matchesLoading } = useMatches();
   const { playerStats } = useStats(players, matches);
   const { toast } = useToast();
-  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
+  const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
+
+  // Look up the current match from the matches array to ensure we always have fresh data
+  const selectedMatch = selectedMatchId
+    ? matches.find(m => m.id === selectedMatchId) || null
+    : null;
 
   const loading = playersLoading || matchesLoading;
   const totalMatches = matches.length;
@@ -226,7 +230,7 @@ export function Dashboard() {
                     <MatchCard
                       match={match}
                       players={players}
-                      onClick={() => setSelectedMatch(match)}
+                      onClick={() => setSelectedMatchId(match.id)}
                     />
                   </motion.div>
                 ))}
@@ -337,14 +341,14 @@ export function Dashboard() {
         match={selectedMatch}
         players={players}
         open={selectedMatch !== null}
-        onClose={() => setSelectedMatch(null)}
+        onClose={() => setSelectedMatchId(null)}
         onDelete={(matchId) => {
           deleteMatch(matchId);
           toast({
             title: "Success",
             description: "Match deleted successfully!",
           });
-          setSelectedMatch(null);
+          setSelectedMatchId(null);
         }}
         onEdit={async (matchId, updates) => {
           const success = await updateMatch(matchId, updates);

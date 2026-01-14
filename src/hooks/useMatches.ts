@@ -8,6 +8,25 @@ export function useMatches() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Helper function to transform Supabase snake_case to camelCase Match object
+  const transformSupabaseMatch = (data: any): Match => {
+    return {
+      id: data.id,
+      date: data.date,
+      yellowTeam: {
+        playerIds: data.yellow_team_player_ids || [],
+        score: data.yellow_team_score || 0,
+      },
+      redTeam: {
+        playerIds: data.red_team_player_ids || [],
+        score: data.red_team_score || 0,
+      },
+      events: data.events || [],
+      createdAt: data.created_at,
+      manOfTheMatch: data.man_of_the_match || undefined,
+    };
+  };
+
   useEffect(() => {
     const loadMatches = async () => {
       try {
@@ -33,7 +52,7 @@ export function useMatches() {
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'matches' },
         (payload) => {
-          const newMatch = payload.new as Match;
+          const newMatch = transformSupabaseMatch(payload.new);
           setMatches(prev => {
             // Check if already exists to prevent duplicates
             if (prev.some(m => m.id === newMatch.id)) {
@@ -47,9 +66,10 @@ export function useMatches() {
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'matches' },
         (payload) => {
+          const updatedMatch = transformSupabaseMatch(payload.new);
           setMatches(prev =>
             prev.map(match =>
-              match.id === (payload.new as Match).id ? (payload.new as Match) : match
+              match.id === updatedMatch.id ? updatedMatch : match
             )
           );
         }
@@ -58,7 +78,7 @@ export function useMatches() {
         'postgres_changes',
         { event: 'DELETE', schema: 'public', table: 'matches' },
         (payload) => {
-          setMatches(prev => prev.filter(match => match.id !== (payload.old as Match).id));
+          setMatches(prev => prev.filter(match => match.id !== payload.old.id));
         }
       )
       .subscribe();
@@ -100,11 +120,13 @@ export function useMatches() {
   const updateMatch = useCallback(async (matchId: string, updates: Partial<Match>): Promise<boolean> => {
     try {
       const updatedMatch = await api.matches.update(matchId, updates);
+
       setMatches(prev =>
         prev.map(match =>
           match.id === matchId ? updatedMatch : match
         )
       );
+
       return true;
     } catch (err) {
       console.error('Error updating match:', err);

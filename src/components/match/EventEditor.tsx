@@ -118,9 +118,16 @@ export function EventEditor({ events, yellowPlayers, redPlayers, onEventsChange 
 
     const isOwnGoal = event.type === 'own-goal';
     const playerName = getPlayerName(event.playerId, event.team);
-    const assistName = event.type === 'goal' && event.assistPlayerId
-      ? getPlayerName(event.assistPlayerId, event.team)
-      : null;
+
+    // Handle assists for both regular goals and own goals
+    let assistName: string | null = null;
+    if (event.type === 'goal' && event.assistPlayerId) {
+      assistName = getPlayerName(event.assistPlayerId, event.team);
+    } else if (event.type === 'own-goal' && event.assistPlayerId) {
+      // For own goals, assist is from opposing team
+      const opposingTeam = event.team === 'yellow' ? 'red' : 'yellow';
+      assistName = getPlayerName(event.assistPlayerId, opposingTeam);
+    }
 
     return (
       <div
@@ -263,26 +270,42 @@ export function EventEditor({ events, yellowPlayers, redPlayers, onEventsChange 
       </div>
 
       {/* Dialogs */}
-      {dialogState && dialogState.type === 'goal' && (
-        <AddGoalDialog
-          open={true}
-          onClose={() => setDialogState(null)}
-          players={dialogState.team === 'yellow' ? yellowPlayers : redPlayers}
-          team={dialogState.team}
-          onAddGoal={handleGoalAdded}
-        />
-      )}
+      {dialogState && dialogState.type === 'goal' && (() => {
+        const editingEvent = dialogState.editingIndex !== undefined
+          ? events[dialogState.editingIndex] as GoalEvent
+          : null;
 
-      {dialogState && dialogState.type === 'own-goal' && (
-        <AddOwnGoalDialog
-          open={true}
-          onClose={() => setDialogState(null)}
-          players={dialogState.team === 'yellow' ? yellowPlayers : redPlayers}
-          opposingPlayers={dialogState.team === 'yellow' ? redPlayers : yellowPlayers}
-          team={dialogState.team}
-          onAddOwnGoal={handleOwnGoalAdded}
-        />
-      )}
+        return (
+          <AddGoalDialog
+            open={true}
+            onClose={() => setDialogState(null)}
+            players={dialogState.team === 'yellow' ? yellowPlayers : redPlayers}
+            team={dialogState.team}
+            onAddGoal={handleGoalAdded}
+            initialScorerId={editingEvent?.playerId}
+            initialAssistId={editingEvent?.assistPlayerId}
+          />
+        );
+      })()}
+
+      {dialogState && dialogState.type === 'own-goal' && (() => {
+        const editingEvent = dialogState.editingIndex !== undefined
+          ? events[dialogState.editingIndex] as OwnGoalEvent
+          : null;
+
+        return (
+          <AddOwnGoalDialog
+            open={true}
+            onClose={() => setDialogState(null)}
+            players={dialogState.team === 'yellow' ? yellowPlayers : redPlayers}
+            opposingPlayers={dialogState.team === 'yellow' ? redPlayers : yellowPlayers}
+            team={dialogState.team}
+            onAddOwnGoal={handleOwnGoalAdded}
+            initialPlayerId={editingEvent?.playerId}
+            initialAssistId={editingEvent?.assistPlayerId}
+          />
+        );
+      })()}
     </Card>
   );
 }

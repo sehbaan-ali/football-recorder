@@ -26,6 +26,12 @@ export class StatsService {
     // Process each match
     matches.forEach(match => {
       const { yellowTeam, redTeam, events } = match;
+
+      // Skip matches with invalid structure
+      if (!yellowTeam || !redTeam || !yellowTeam.playerIds || !redTeam.playerIds) {
+        return;
+      }
+
       const yellowScore = yellowTeam.score;
       const redScore = redTeam.score;
 
@@ -59,11 +65,13 @@ export class StatsService {
       // Process events
       events.forEach(event => {
         const stats = statsMap.get(event.playerId);
-        if (!stats) return;
 
         switch (event.type) {
           case 'goal':
-            stats.goals++;
+            if (stats) {
+              stats.goals++;
+            }
+            // Process assist even if scorer doesn't have stats
             if (event.assistPlayerId) {
               const assistStats = statsMap.get(event.assistPlayerId);
               if (assistStats) {
@@ -72,8 +80,10 @@ export class StatsService {
             }
             break;
           case 'own-goal':
-            stats.ownGoals++;
-            // Process assist if present (attacking player whose action forced the own goal)
+            if (stats) {
+              stats.ownGoals++;
+            }
+            // Process assist even if own-goal scorer doesn't have stats (e.g., guest player)
             if (event.assistPlayerId) {
               const assistStats = statsMap.get(event.assistPlayerId);
               if (assistStats) {
@@ -82,7 +92,9 @@ export class StatsService {
             }
             break;
           case 'clean-sheet':
-            stats.cleanSheets++;
+            if (stats) {
+              stats.cleanSheets++;
+            }
             break;
         }
       });

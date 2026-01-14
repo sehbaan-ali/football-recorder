@@ -43,21 +43,31 @@ interface AddGoalDialogProps {
   players: Player[];
   team: TeamColor;
   onAddGoal: (scorerId: string, assistId?: string) => void;
+  initialScorerId?: string;
+  initialAssistId?: string;
 }
 
-export function AddGoalDialog({ open, onClose, players, team, onAddGoal }: AddGoalDialogProps) {
+export function AddGoalDialog({
+  open,
+  onClose,
+  players,
+  team,
+  onAddGoal,
+  initialScorerId,
+  initialAssistId
+}: AddGoalDialogProps) {
   const [selectedScorer, setSelectedScorer] = useState('');
   const [selectedAssist, setSelectedAssist] = useState('');
 
   const teamName = team === 'yellow' ? 'Yellow' : 'Red';
 
-  // Reset selections when dialog opens
+  // Set initial values or reset when dialog opens
   useEffect(() => {
     if (open) {
-      setSelectedScorer('');
-      setSelectedAssist('');
+      setSelectedScorer(initialScorerId || '');
+      setSelectedAssist(initialAssistId || '');
     }
-  }, [open]);
+  }, [open, initialScorerId, initialAssistId]);
 
   const handleAddGoal = () => {
     if (!selectedScorer) return;
