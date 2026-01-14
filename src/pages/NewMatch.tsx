@@ -23,7 +23,7 @@ import { usePlayers } from '../hooks/usePlayers';
 import { useMatches } from '../hooks/useMatches';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../hooks/use-toast';
-import type { TeamColor, MatchEvent } from '../types';
+import type { TeamColor, MatchEvent, Player } from '../types';
 
 type Step = 'setup' | 'recording' | 'finalized';
 
@@ -83,7 +83,7 @@ export function NewMatch() {
     const playerIds = new Set(players.map(p => p.id));
     const idsToRemove: string[] = [];
 
-    guestCache.forEach((guest, id) => {
+    guestCache.forEach((_guest, id) => {
       if (playerIds.has(id)) {
         idsToRemove.push(id);
       }

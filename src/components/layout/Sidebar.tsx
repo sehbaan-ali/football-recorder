@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Users, Plus, Trophy, Calendar, ChevronLeft, ChevronRight, LogOut, LogIn, Settings, HelpCircle } from 'lucide-react';
+import { Home, Users, Plus, Trophy, ChevronLeft, ChevronRight, LogOut, LogIn, Settings, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '../../contexts/AuthContext';
 import { cn } from '@/lib/utils';

@@ -6,7 +6,6 @@ import { AddGoalDialog } from './AddGoalDialog';
 import { AddOwnGoalDialog } from './AddOwnGoalDialog';
 import { calculateScoresFromEvents } from '../../utils/eventHelpers';
 import type { MatchEvent, Player, GoalEvent, OwnGoalEvent } from '../../types';
-import { cn } from '@/lib/utils';
 
 interface EventEditorProps {
   events: MatchEvent[];

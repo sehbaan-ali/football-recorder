@@ -95,7 +95,7 @@ export function FormationSelector({
     const playerIds = new Set(players.map(p => p.id));
     const idsToRemove: string[] = [];
 
-    guestCache.forEach((guest, id) => {
+    guestCache.forEach((_guest, id) => {
       if (playerIds.has(id)) {
         idsToRemove.push(id);
       }
